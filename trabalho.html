@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="./system/icons/others/fav.png">
+    <title>PhoneSim</title>
+    <link rel="stylesheet" href="./system/style.css" />
+    <link rel="stylesheet" href="./system/animete.css" />
+    <script src="./system/vue.js"></script>
+    <script>
+        window.onload = () => {
+            if (typeof gameConfig !== 'undefined' && gameConfig.name) document.title = gameConfig.name;
+        };
+    </script>
+</head>
+
+<body>
+    <noscript>
+        <p>Please enable JavaScript to play this game.</p>
+    </noscript>
+
+    <div id="app">
+        <Phone />
+    </div>
+
+    <script src="./content/characters.js"></script>
+    <script src="./content/story.js"></script>
+    <script src="./content/config.js"></script>
+
+    <script>
+        // -----------------------------------------------------------------
+        // --------------------------- Others ------------------------------
+        // -----------------------------------------------------------------
+
+        const naveButtons = {
+            template: `
+                <div class="btn-container nav-buttons">
+                    <div @click="goBack" class="btn"><img src="./system/icons/others/back.png"></div>
+                    <div @click="navigateTo('Home')" class="btn"><img src="./system/icons/others/home.png"></div>
+                    <div class="btn"><img src="./system/icons/others/square.png"></div>
+                </div>
+            `,
+            emits: ["navigateTo", "goBack"],
+            methods: {
+                navigateTo(app) {
+                    this.$emit("navigateTo", app)
+                },
+                goBack() {
+                    this.$emit("goBack");
+                }
+            },
+        }
+
+        // -----------------------------------------------------------------
+
+        const alarm = {
+            template: `
+                <div class="modal animate__animated animate__fadeInDown">
+                    <p>{{endVersion ? 'You are reached the end of the version. If you want to see this project grow, I ask for your support. Thank you for playing!' : canAdvance ? 'Advance time?' : 'I need to resolve all my issues first'}}</p>
+                    <div class="modal-btn-container">
+                        <div v-show="canAdvance" @click="canAdvance && $emit('advanceTime')" class="modal-btn">Advance</div>
+                        <div @click="$emit('setShowAlarm')" class="modal-btn">Close</div>
+                    </div>
+                </div>
+
+                <div class="overlay"></div>
+            `,
+            data() {
+                return {
+                    endVersion: false
+                }
+            },
+            mounted() {
+                this.endVersion = this.storyNodes[this.storyNodePath].length === this.storyNodeIndex
+            },
+            props: ["canAdvance", "storyNodes", "storyNodePath", "storyNodeIndex"],
+            emits: ["setShowAlarm", "advanceTime",]
+        }
+
+        // -----------------------------------------------------------------
+
+        const dialogueBox = {
+            template: `
+                <div @click="handleClick()" class="dialogue-box">
+                    <div class="content">
+                        <span v-if="content.charKey !== 'sys'" :style="'color:' + characters[content.charKey].textColor">{{characters[content.charKey].name}} {{content.thinking ? '(Thinking)' : ''}}</span>
+                        <p v-html="content.text"></p>
+                    </div>
+                </div>
+                <div @click="handleClick()" class="overlay"></div>
+            `,
+            props: ["content", "characters", "currentEnvStory", "currentCharStory"],
+            emits: ["advanceStory", "setDialogueBox"],
+            methods: {
+                handleClick() {
+                    if (this.content?.single) this.$emit("setDialogueBox", null)
+                    else this.$emit('advanceStory', this.currentEnvStory, this.currentCharStory)
+                }
+            },
+        }
+
+        // -----------------------------------------------------------------
+
+        const notification = {
+            template: `
+            <div @click="navigate" class="notification">
+                <div class="header">
+                    <div class="icon"><img
+                            :src="'./system/icons/apps/' + (notifyType === 'i' ? 'insta.png' : 'whatsapp.png')"></div>
+                    <span>{{notifyType === 'i' ? 'INSTAGRAM' : 'WHATSAPP'}}</span>
+                    <span
+                        style="margin-left: auto;width: 115px;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;text-transform: uppercase; text-align: right;margin-right: 4px;"
+                        v-show="notifyType === 'w' && notification?.prefix">{{notification.char.name}}</span>
+                </div>
+                <div class="content">
+                    <span>{{notifyType === "i" ?  notification.char.name + " just posted a photo" : notifyType === "w" && notification?.prefix ? notification?.prefix : notification.char.name }}</span>
+                    <p v-if="notifyType === 'w'">{{notification?.text}}</p>
+                </div>
+            </div>
+            <audio src="./system/audios/notification.mp3" id="notification-sound" autoplay></audio>
+            `,
+            props: ["notification"],
+            emits: ["notificationsShift", "navigateTo", "setCloneMode"],
+            computed: {
+                notifyType() {
+                    return this.notification?.type
+                }
+            },
+            methods: {
+                navigate() {
+                    if (this.notifyType === "i") this.$emit("navigateTo", "Insta")
+                    else {
+                        this.$emit("setCloneMode", false)
+                        this.$emit("navigateTo", "Whats")
+                        this.$emit("navigateTo", "WhatsChat", this.notification.char)
+                    }
+                    this.$emit("notificationsShift")
+                },
+            }
+        }
+
+        // -----------------------------------------------------------------
+
+        const renpyChoiceMenu = {
+            template: `
+                <div class="choices">
+                    <div class="option" v-for="(choice, index) in choices" @click="handleSelectChoice(choice[1])">{{choice[0]}}</div>
+                </div>
+                <div class="overlay"></div>
+            `,
+            props: ["choices"],
+            emits: ["jump"],
+            methods: {
+                handleSelectChoice(path) {
+                    this.$emit("jump", path, true)
+                }
+            }
+        }
+
+        // -----------------------------------------------------------------
+
+        const message = {
+            template: `
+                <div :class="'message' + (dest === 's' ? ' sent' : ' received') + (type === 'image' ? ' expand-image' : '') + (expanded === true ? ' expanded' : '')">
+                    <span :style="'color:' + color" class="person" v-show="prefix">{{prefix}}</span>
+                    <img @click="expandClosePhoto" v-if="type === 'image' && src" :src="src">
+                    <video v-if="type === 'video' && src" :src="src" controls></video>
+                    <div v-html=text></div>
+                </div>
+                <audio ref="audio" :src="dest === 's' ? './system/audios/send_text.mp3' : './system/audios/receive_text.mp3'" type="audio/mpeg" id="msg-sound"></audio>
+            `,
+            props: {
+                type: {
+                    type: String,
+                    default: "text"
+                },
+                dest: String,
+                src: String,
+                text: String,
+                canPlayAudio: Boolean,
+                prefix: String
+            },
+            data() {
+                return {
+                    expanded: false,
+                    scrollPosition: 0,
+                    color: ""
+                }
+            },
+            mounted() {
+                if (this.canPlayAudio) this.playAudio();
+                if (this.prefix) this.hashStringToColor(this.prefix)
+            },
+            updated() {
+                if (this.prefix) this.hashStringToColor(this.prefix)
+            },
+            methods: {
+                hashStringToColor(str) {
+                    let hash = 0;
+                    for (let i = 0; i < str.length; i++) {
+                        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                    }
+                    let color = '#';
+                    for (let i = 0; i < 3; i++) {
+                        const value = (hash >> (i * 8)) & 0xFF;
+                        color += ('00' + value.toString(16)).substr(-2);
+                    }
+                    this.color = color;
+                },
+                expandClosePhoto() {
+                    if (!this.expanded) {
+                        this.scrollPosition = this.$el.parentElement.scrollTop;
+                    } else {
+                        setTimeout(() => {
+                            this.$el.parentElement.scrollTop = this.scrollPosition;
+                        }, 3)
+                    }
+
+                    this.expanded = !this.expanded;
+                },
+                playAudio() {
+                    if (this.$refs.audio) {
+                        this.$refs.audio.play();
+                    }
+                }
+            }
+        }
+
+        // -----------------------------------------------------------------
+
+        const comment = {
+            template: ` 
+                <div class="comment">
+                    <div class="text">
+                        <span>{{item[0]}}</span>
+                        <p>{{item[1]}}</p>
+                    </div>
+                </div>
+            `,
+            props: ["item", "charactersInfo"],
+        }
+
+        // -----------------------------------------------------------------
+
+        const post = {
+            template: `
+                <div class="post">
+                    <img :src="post?.src" class="thumb">
+                    <div class="person">
+                        <img :src="characters[post.character]?.perfil">
+                        <span>{{characters[post.character]?.name.toLowerCase()}}</span>
+                    </div>
+                    <div class="actions">
+                        <div @click="like" class="btn">
+                            <img :src="'./system/icons/others/' + (likedPosts.includes(post.id) ? 'red-heart-insta.svg' : 'heart-insta.svg')">
+                        </div>
+
+                        <div class="btn">
+                            <img src="./system/icons/others/comments.png">
+                        </div>
+                    </div>
+
+                    <div class="comment-list">
+                        <Comment v-for="(item, index) in post?.comments" :key="index" :item="item" />
+                    </div>
+                </div>
+            `,
+            props: ["post", "postIndex", "characters", "likedPosts"],
+            emits: ["likePostInsta"],
+            methods: {
+                like() {
+                    this.$emit("likePostInsta", this.post.id)
+                },
+            },
+            components: {
+                "Comment": comment
+            }
+        }
+
+        const save = {
+            template: `
+            <div class="content-save">
+                <div class="header">
+                    <span>Save/Load</span>
+                </div>
+
+                <div class="save-container" ref="saveContainer">
+                    <template v-if="saves.length">
+                        <div v-for="(save, index) in saves" key="save?.saveName" class="save" :class="{ 'highlight': index === saves.length -1 && highlightNewSave }">
+                            <span class="save-load-btn" @click="loadSave(index)">Load</span>
+                            <input ref="editInput" v-if="editingIndex === index" type="text" v-model="tempName" @blur="editSave(index)" @keydown.enter="editSave(index)">
+                            <span 
+                                class="save-name-span" 
+                                @click="setEditingIndex(index, save.saveName)" 
+                                v-show="editingIndex !== index"
+                                :data-text="save.saveName.length > 17 ? save.saveName : ''"
+                            >
+                                {{ save.saveName.length <= 17 ? save.saveName : ''}}
+                            </span>   
+                            <span class="save-delete-btn" @click="deleteSave(index)">Delete</span>   
+                        </div>    
+                    </template>
+
+                    <template v-if="!saves.length">
+                        <span class="no-saves">You don't have any saves, click on the button below to create a new one</span>
+                    </template>
+                </div>
+
+                <div class="new-save-slot">
+                    <span @click="save">Save in new slot</span>
+                </div>
+
+                <div class="importexport">
+                    <input type="file" ref="fileInput" @change="handleFileChange" style="display: none;">
+                    <span @click="exportSave">Save to Disk</span>
+                    <span @click="importSave">Load from Disk</span>
+                </div>
+
+                <p class="dev-notification">The game features an automatic saving system and will always resume from where you left off</p>
+                <p class="dev-notification">Tip: You can change the save name when creating a new one or by clicking on an existing one</p>
+                <p class="dev-notification">You can save at any time using "Shift" button</p>
+            </div>
+            `,
+            data() {
+                return {
+                    saves: [],
+                    highlightNewSave: false,
+                    editingIndex: -1,
+                    tempName: "",
+                    originalName: ""
+                }
+            },
+            mounted() {
+                this.saves = JSON.parse(localStorage.getItem(`${gameConfig.name}Saves`)) || []
+                this.disableQuickSave()
+            },
+            beforeUnmount() {
+                this.disableQuickSave()
+            },
+            emits: ["setAllowQuickSave"],
+            methods: {
+                disableQuickSave() {
+                    this.$emit("setAllowQuickSave")
+                },
+                handleFileChange(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        if (file.name.endsWith('.phonesimsave')) {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                const saveData = e.target.result;
+                                const saveDataParsed = JSON.parse(saveData)
+                                if (saveDataParsed.gameName === gameConfig.name) {
+                                    localStorage.setItem(`${gameConfig.name}Save`, saveData);
+                                }
+                                else window.alert("This save file is for a different game.")
+                            };
+                            reader.readAsText(file);
+                        }
+                        else window.alert("This is not a valid save game file.")
+                        window.location.reload();
+                    }
+                },
+                exportSave() {
+                    const data = localStorage.getItem(`${gameConfig.name}Save`);
+                    if (data) {
+                        const blob = new Blob([data], { type: 'application/octet-stream' });
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `${gameConfig.name.toLowerCase()}.phonesimsave`;
+                        document.body.appendChild(link);
+                        link.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(link);
+                    }
+                },
+                save() {
+                    const currentSave = JSON.parse(localStorage.getItem(`${gameConfig.name}Save`))
+                    this.saves.push({ ...currentSave, saveName: this.getDate() });
+                    localStorage.setItem(`${gameConfig.name}Saves`, JSON.stringify(this.saves))
+
+                    this.highlightNewSave = true;
+                    setTimeout(() => {
+                        this.highlightNewSave = false;
+                    }, 1000);
+
+                    this.$nextTick(() => {
+                        this.$refs.saveContainer.scrollTop = 99999
+                    })
+
+                    this.setEditingIndex(this.saves.length - 1, this.getDate())
+                },
+                deleteSave(index) {
+                    this.saves.splice(index, 1)
+                    localStorage.setItem(`${gameConfig.name}Saves`, JSON.stringify(this.saves))
+                },
+                loadSave(index) {
+                    localStorage.setItem(`${gameConfig.name}Save`, JSON.stringify(this.saves[index]))
+                    window.location.reload()
+                },
+                editSave(index) {
+                    this.editingIndex = -1
+                    if (this.tempName.length > 0 && this.tempName !== this.originalName) {
+                        this.saves[index].saveName = this.tempName
+                        localStorage.setItem(`${gameConfig.name}Saves`, JSON.stringify(this.saves))
+                    }
+                },
+                setEditingIndex(index, saveName) {
+                    this.editingIndex = index
+                    this.tempName = saveName
+                    this.originalName = saveName
+
+                    this.$nextTick(() => {
+                        this.$refs.editInput[0].focus();
+                        this.$refs.editInput[0].setSelectionRange(0, this.$refs.editInput[0].value.length);
+                    })
+                },
+                getDate() {
+                    var currentDateTime = new Date();
+                    var day = currentDateTime.getDate();
+                    var month = currentDateTime.getMonth() + 1;
+                    var year = currentDateTime.getFullYear();
+                    var hour = currentDateTime.getHours();
+                    var minute = currentDateTime.getMinutes();
+                    return (month < 10 ? '0' : '') + month + '/' + (day < 10 ? '0' : '') + day + '/' + year + ' ' + (hour < 10 ? '0' : '') + hour + ':' + (minute < 10 ? '0' : '') + minute;
+                },
+                importSave() {
+                    this.$refs.fileInput.click();
+                }
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // --------------------------- Apps --------------------------------
+        // -----------------------------------------------------------------
+
+        const config = {
+            template: `
+                <div class="config">
+                    <div class="content">
+                        <div v-show="promptModal.show" class="prompt">
+                            <div class="bla">
+                                <p>{{promptModal.title}}</p>
+                                <div class="actions"><button @click="promptModal.action">{{promptModal.text1}}</button><button @click="promptModal.show=false">{{promptModal.text2}}</button></div>        
+                            </div>
+                        </div>
+                        <template v-if="!currentOption">
+                            <div class="header">
+                                <span>Settings</span>
+                            </div>
+
+                            <div class="option" @click="setCurrentOption('Save')">
+                                <img src="./system/icons/others/save.png">
+                                <span>Save/Load System</span> 
+                            </div>
+
+                            <div class="option" @click="setModalResetGame">
+                                <img src="./system/icons/others/reset.png">
+                                <span>Reset (start a new game)</span> 
+                            </div>
+                        </template>
+
+                        <template v-if="currentOption">
+                            <component :is="currentOption" @setAllowQuickSave="throwSetAllowQuickSave"/>    
+                        </template>
+
+                        <p v-show="!currentOption"class="dev-notification">More setting options coming soon</p>
+                    </div>
+                </div>
+                <NaveButtons @navigateTo="navigateTo" @goBack="goBack"/>
+            `,
+            props: [
+                "appProps",
+                "posts",
+                "characters",
+                "showDialogueBox",
+                "currentPeriod",
+                "currentDay",
+                "temperature",
+                "randomWeatherIndex",
+                "storyNodeElement",
+                "storyNodeElement",
+                "currentCharStory",
+                "currentEnvStory",
+                "messageHistory",
+                "likedPosts",
+                "answerCall",
+                "endEvent",
+                "nextStory",
+                "storyNodes",
+                "storyNodePath",
+                "storyNodeIndex",
+                "waitAnotherCall",
+                "cloneMode",
+                "showApps"
+            ],
+            emits: [
+                "goBack",
+                "navigateTo",
+                "setShowAlarm",
+                "setDialogueBox",
+                "editCharacter",
+                "advanceStory",
+                "likePostInsta",
+                "storyNodeRender",
+                "setWaitAnotherCall",
+                "setCloneMode",
+                "setAllowQuickSave"
+            ],
+            data() {
+                return {
+                    currentOption: null,
+                    promptModal: {
+                        show: false,
+                        title: "",
+                        text1: "",
+                        text2: "",
+                        action: () => { }
+                    }
+                }
+            },
+            methods: {
+                throwSetAllowQuickSave() {
+                    this.$emit("setAllowQuickSave")
+                },
+                navigateTo(app) {
+                    this.$emit("navigateTo", app)
+                },
+                goBack() {
+                    this.$emit("goBack");
+                },
+                setCurrentOption(option) {
+                    this.currentOption = option
+                },
+                setModalResetGame() {
+                    this.promptModal = {
+                        show: true,
+                        title: "Are you sure you want to start a new game?",
+                        text1: "Start a new game",
+                        text2: "Cancel",
+                        action: this.resetProgress
+                    }
+                },
+                resetProgress() {
+                    localStorage.removeItem(`${gameConfig.name}Save`)
+                    window.location.reload()
+                }
+            },
+            components: {
+                "NaveButtons": naveButtons,
+                "Save": save
+            }
+        }
+
+        const insta = {
+            template: `
+                <div class="insta">
+                    <div class="content">
+                        <div class="header">
+                            <div class="logo">
+                                <img src="./system/icons/others/insta-logo.png">
+                            </div>
+                            <div class="nave">
+                                <div class="btn">
+                                    <img src="./system/icons/others/heart.png">
+                                </div>
+
+                                <div class="btn">
+                                    <img src="./system/icons/others/messenger.png">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="posts" v-show="posts.length">
+                            <Post v-for="(post, index) in posts" :postIndex="index" :key="index" :likedPosts="likedPosts" :characters="characters" :post="post" @likePostInsta="likePostInsta"/>
+                        </div>
+
+                        <div class="no-posts-message" v-show="!posts.length">Welcome. When your friends make new posts, you'll see them here.</div>
+
+                        <div class="footer">
+                            <div class="btn">
+                                <img src="./system/icons/others/home-insta.png">
+                            </div>
+
+                            <div class="btn">
+                                <img src="./system/icons/others/lupa.png">
+                            </div>
+
+                            <div class="btn">
+                                <img src="./system/icons/others/plus-insta.png">
+                            </div>
+
+                            <div class="btn">
+                                <img src="./system/icons/others/video.png">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <NaveButtons @navigateTo="navigateTo" @goBack="goBack"/>
+            `,
+            props: [
+                "appProps",
+                "posts",
+                "characters",
+                "showDialogueBox",
+                "currentPeriod",
+                "currentDay",
+                "temperature",
+                "randomWeatherIndex",
+                "storyNodeElement",
+                "currentCharStory",
+                "currentEnvStory",
+                "messageHistory",
+                "likedPosts",
+                "answerCall",
+                "endEvent",
+                "nextStory",
+                "storyNodes",
+                "storyNodePath",
+                "storyNodeIndex",
+                "waitAnotherCall",
+                "cloneMode",
+                "showApps"
+            ],
+            emits: [
+                "navigateTo",
+                "goBack",
+                "setShowAlarm",
+                "setDialogueBox",
+                "editCharacter",
+                "advanceStory",
+                "likePostInsta",
+                "storyNodeRender",
+                "storyNodeElement",
+                "setWaitAnotherCall",
+                "setCloneMode",
+                "setAllowQuickSave"
+            ],
+            methods: {
+                navigateTo(app) {
+                    this.$emit("navigateTo", app)
+                },
+                goBack() {
+                    this.$emit("goBack");
+                },
+                setLikedPosts(newState) {
+                    this.$emit("setLikedPosts", newState)
+                },
+                likePostInsta(id) {
+                    this.$emit("likePostInsta", id)
+                }
+            },
+            components: {
+                "Post": post,
+                "NaveButtons": naveButtons
+            }
+        }
+
+        // -----------------------------------------------------------------
+
+        const newContact = {
+            template: `
+                <div class="new-contact">
+                    <div class="content">
+                        <div class="info">
+                            <div class="profile">
+                                <img :src="characters[appProps].perfil">
+                                <input class="inp" placeholder="Name" v-model="name"/>
+                            </div>
+
+                            <div v-if="rel.length" class="rel">
+                                <input class="inp" placeholder="This character is your......" v-model="rel[1]"/>
+                                <input class="inp" placeholder="You are this character's..." v-model="rel[0]"/>
+                            </div>
+                        </div>
+
+                        <div @click="edit" class="btn add-button">Save</div>
+                    </div>
+                </div>
+            `,
+            data() {
+                return {
+                    char: {},
+                    name: "",
+                    rel: [],
+                }
+            },
+            mounted() {
+                this.char = this.characters[this.appProps]
+                this.name = this.char?.name
+                if (this.char?.rel) {
+                    this.rel = [this.char?.rel[0][1], this.char?.rel[1][1]]
+                }
+                this.disableQuickSave()
+            },
+            beforeUnmount() {
+                this.disableQuickSave()
+            },
+            props: [
+                "appProps",
+                "likedPosts",
+                "posts",
+                "story",
+                "characters",
+                "path",
+                "currentPeriod",
+                "currentDay",
+                "temperature",
+                "randomWeatherIndex",
+                "storyNodeElement",
+                "answerCall",
+                "endEvent",
+                "nextStory",
+                "storyNodes",
+                "storyNodePath",
+                "storyNodeIndex",
+                "waitAnotherCall",
+                "cloneMode",
+                "showApps"
+            ],
+            emits: [
+                "navigateTo",
+                "goBack",
+                "setShowAlarm",
+                "setLikedPosts",
+                "advanceStory",
+                "editCharacter",
+                "storyNodeRender",
+                "likedPosts",
+                "setWaitAnotherCall",
+                "setCloneMode",
+                "setAllowQuickSave"
+            ],
+            methods: {
+                disableQuickSave() {
+                    this.$emit("setAllowQuickSave")
+                },
+                edit() {
+                    if (this.name.length) {
+                        if (this.rel.length) {
+                            const newRell = this.char?.rel
+                            newRell[0][1] = this.rel[0]
+                            newRell[1][1] = this.rel[1]
+                            this.$emit("editCharacter", this.appProps, {
+                                name: this.name,
+                                rel: newRell
+                            })
+                        }
+                        else {
+                            this.$emit("editCharacter", this.appProps, {
+                                name: this.name,
+                            })
+                        }
+                        this.$emit("goBack")
+                    }
+                },
+            }
+        }
+
+        // -----------------------------------------------------------------
+
+        const phoneCall = {
+            template: `
+            <div class="phone-call">
+                <div class="content">
+                    <div class="info">
+                        <img :src="appProps.perfil">
+                        <span>{{appProps?.name}}</span>
+                        <p>{{callEnded ? status : answered ? formattedTime : status}}</p>
+                    </div>
+                    <div class="actions">
+                        <div @click="goBack()" class="btn end-call">
+                            <img src="./system/icons/others/end-call.png">
+                        </div>
+                    </div>
+                    <audio src="./system/audios/call.mp3" type="audio/mpeg" id="msg-sound" autoplay></audio>
+                    <audio v-if="callEnded" src="./system/audios/end-call.mp3" type="audio/mpeg" id="msg-sound" autoplay></audio>
+                </div>
+            </div>
+            `,
+            data() {
+                return {
+                    hasEvent: false,
+                    status: "Calling...",
+                    answered: false,
+                    callEnded: false,
+                    elapsedTime: 0,
+                    charKey: "",
+                    soundEffect: null,
+                    canPrecide: false
+                }
+            },
+            props: [
+                "appProps",
+                "posts",
+                "characters",
+                "currentPeriod",
+                "currentDay",
+                "temperature",
+                "randomWeatherIndex",
+                "currentCharStory",
+                "currentEnvStory",
+                "messageHistory",
+                "likedPosts",
+                "answerCall",
+                "endEvent",
+                "nextStory",
+                "storyNodes",
+                "storyNodePath",
+                "storyNodeIndex",
+                "waitAnotherCall",
+                "cloneMode",
+                "showApps"
+            ],
+            emits: [
+                "goBack",
+                "navigateTo",
+                "setShowAlarm",
+                "setDialogueBox",
+                "advanceStory",
+                "editCharacter",
+                "storyNodeRender",
+                "setWaitAnotherCall",
+                "setCloneMode",
+                "setAllowQuickSave"
+            ],
+            created() {
+                document.addEventListener('keydown', this.handleKeyDown)
+            },
+            mounted() {
+                this.charKey = Object.keys(this.characters).find(key => this.characters[key]?.name === this.appProps?.name)
+                this.hasEvent = this.currentEnvStory === "call" && this.currentCharStory === this.charKey
+
+                setTimeout(() => {
+                    if (!this.hasEvent) {
+                        this.status = "Missed call"
+                    }
+                    else {
+                        this.canPrecide = true
+                        if (this.answerCall) this.answered = this.answerCall
+                        else this.status = "Missed call"
+                        this.startTimer();
+                        this.$emit("setWaitAnotherCall", false)
+                        this.advance(true);
+                    }
+                }, 7000)
+            },
+            updated() {
+                if (this.hasEvent && this.endEvent && !this.callEnded) this.endCall()
+            },
+            beforeUnmount() {
+                document.removeEventListener('keydown', this.handleKeyDown);
+            },
+            methods: {
+                navigateTo(app) {
+                    this.$emit("navigateTo", app)
+                },
+                goBack() {
+                    this.$emit("goBack")
+                },
+                startTimer() {
+                    setInterval(() => {
+                        this.elapsedTime++;
+                    }, 1000);
+                },
+                endCall() {
+                    if (this.answered) {
+                        this.callEnded = true
+                        this.status = "Call Ended"
+                    }
+                },
+                callEffect(src) {
+                    this.soundEffect = src
+                },
+                handleKeyDown(event) {
+                    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Enter' || event.code === 'NumpadEnter') {
+                        this.advance();
+                    }
+                },
+                advance(force = false) {
+                    if (this.hasEvent && this.canPrecide && (force || !this.waitAnotherCall)) {
+                        this.$emit("advanceStory", "call", this.charKey)
+                    }
+                }
+            },
+            computed: {
+                formattedTime() {
+                    const minutes = Math.floor(this.elapsedTime / 60);
+                    const seconds = this.elapsedTime % 60;
+                    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+
+            }
+        }
+
+        // -----------------------------------------------------------------
+
+        const phoneApp = {
+            template: `
+                <div class="phone-app">
+                    <div class="nav">
+                        <input class="search" disabled type="search" placeholder="Search" />
+                    </div>
+
+                    <div class="phone-list">
+                        <div class="btn add-button">
+                            <img src="./system/icons/others/plus.png">
+                        </div>
+
+                        <div class="btn person">
+                            <img :src="characters['mc']?.perfil">
+                            <p>You: {{characters['mc']?.name}}</p>
+                            <img @click="(e) => editChar(e, characters['mc'].name)" class="btn"
+                                src="./system/icons/others/editChar.png">
+                        </div>
+                        
+                        <template v-for="char in characters" :key="char?.name">
+                            <div v-if="!char?.dev && char?.saved && !char.group && !char.clone" @click="navigateTo('PhoneCall', char)" class="btn person">
+                                <img :src="char.perfil">
+                                <p>{{char?.name}}</p>
+                                <img @click="(e) => editChar(e, char.name)" class="btn" src="./system/icons/others/editChar.png">
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <NaveButtons @navigateTo="navigateTo" @goBack="goBack"/>
+            `,
+            props: [
+                "appProps",
+                "posts",
+                "characters",
+                "currentPeriod",
+                "currentDay",
+                "temperature",
+                "randomWeatherIndex",
+                "storyNodeElement",
+                "storyNodeElement",
+                "currentCharStory",
+                "currentEnvStory",
+                "messageHistory",
+                "likedPosts",
+                "answerCall",
+                "endEvent",
+                "nextStory",
+                "storyNodes",
+                "storyNodePath",
+                "storyNodeIndex",
+                "waitAnotherCall",
+                "cloneMode",
+                "showApps"
+            ],
+            emits: [
+                "navigateTo",
+                "goBack",
+                "setShowAlarm",
+                "setDialogueBox",
+                "advanceStory",
+                "editCharacter",
+                "likePostInsta",
+                "storyNodeRender",
+                "setWaitAnotherCall",
+                "setCloneMode",
+                "setAllowQuickSave"
+            ],
+            methods: {
+                editChar(event, charName) {
+                    event.stopPropagation();
+                    this.$emit("navigateTo", "NewContact", Object.keys(this.characters).find(key => this.characters[key].name === charName))
+                },
+                navigateTo(app, props) {
+                    this.$emit("navigateTo", app, props)
+                },
+                goBack() {
+                    this.$emit("goBack");
+                }
+            },
+            components: {
+                "NaveButtons": naveButtons
+            }
+        }
+
+        // -----------------------------------------------------------------
+
+        const whatsChat = {
+            template: `
+                <div class="whats">
+                    <div class="nav">
+                        <div @click="goBack" class="logo btn chat-opened">
+                            <img src="./system/icons/others/left.png">
+                            <span>{{appProps?.name}}</span>
+                        </div>
+                        <div class="nav-container chat-opened-nav-itens">
+                            <div class="btn"><img src="./system/icons/others/video-call.png"></div>
+                            <div @click="alert('Go to (Home > Phone) to make a call')" class="btn"><img src="./system/icons/others/call.png"></div>
+                            <div class="btn"><img src="./system/icons/others/menu.png"></div>
+                        </div>
+                    </div>
+
+                    <div class="chat">
+                        <div ref="messages" class="messages">
+                            <Message v-for="(mh, index) in messageHistory[charKey]" :key="index"
+                                :dest="mh?.dest" 
+                                :type="mh?.type" 
+                                :src="mh?.src" 
+                                :text="mh?.text"
+                                :canPlayAudio= "canPlayAudio"
+                                :prefix= mh?.prefix
+                            />
+                        </div>
+                        
+                        <div class="decorative-options-bottom" @click="handleClick">
+                            <div class="white-contend-box">
+                                <div class="btn"><img src="./system/icons/others/emojis.png"></div>
+                                <input readonly="true" placeholder="Message">
+                                <div class="btn"><img src="./system/icons/others/clip.png"></div>
+                                <div class="btn"><img src="./system/icons/others/dolar.png"></div>
+                                <div class="btn"><img src="./system/icons/others/camera-whats.png"></div>
+                            </div>
+
+                            <div class="btn mic-button">
+                                <img src="./system/icons/others/mic.png">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <NaveButtons @navigateTo="navigateTo" @goBack="goBack"/>
+            `,
+            props: [
+                "appProps",
+                "posts",
+                "story",
+                "currentPeriod",
+                "currentDay",
+                "temperature",
+                "randomWeatherIndex",
+                "storyNodeIndex",
+                "characters",
+                "storyNodeElement",
+                "storyNodeElement",
+                "currentCharStory",
+                "currentEnvStory",
+                "messageHistory",
+                "likedPosts",
+                "answerCall",
+                "endEvent",
+                "nextStory",
+                "storyNodes",
+                "storyNodePath",
+                "storyNodeIndex",
+                "waitAnotherCall",
+                "cloneMode",
+                "showApps"
+            ],
+            emits: [
+                "navigateTo",
+                "goBack",
+                "setDialogueBox",
+                "advanceStory",
+                "editCharacter",
+                "setShowAlarm",
+                "likePostInsta",
+                "storyNodeRender",
+                "setWaitAnotherCall",
+                "setCloneMode",
+                "setAllowQuickSave"
+            ],
+            data() {
+                return {
+                    canPlayAudio: false,
+                    audioInfo: ""
+                }
+            },
+            mounted() {
+                document.addEventListener('keydown', this.handleKeyDown)
+                this.scrollDown();
+            },
+            beforeUnmount() {
+                document.removeEventListener('keydown', this.handleKeyDown);
+            },
+            computed: {
+                charKey() {
+                    this.canPlayAudio = false
+                    return Object.keys(this.characters).find(key => this.characters[key]?.name.toLowerCase() === this.appProps?.name.toLowerCase())
+                }
+            },
+            methods: {
+                navigateTo(app, props) {
+                    this.$emit("navigateTo", app, props)
+                },
+                goBack() {
+                    this.$emit("goBack");
+                },
+                handleKeyDown(event) {
+                    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Enter' || event.code === 'NumpadEnter') {
+                        this.handleClick();
+                    }
+                },
+                handleClick() {
+                    this.canPlayAudio = true
+                    this.$emit("advanceStory", "chat", this.charKey)
+                    setTimeout(() => {
+                        this.scrollDown()
+                    }, 100)
+                },
+                scrollDown() {
+                    const messagesElement = this.$refs.messages;
+                    if (messagesElement) {
+                        this.$nextTick(() => {
+                            messagesElement.scrollTop = messagesElement.scrollHeight;
+                        })
+                    }
+                },
+                alert(message) {
+                    window.alert(message)
+                }
+            },
+            components: {
+                "Message": message,
+                "NaveButtons": naveButtons,
+                "RenpyChoiceMenu": renpyChoiceMenu,
+            }
+        }
+
+        // -----------------------------------------------------------------
+
+        const whats = {
+            template: `
+                <div class="whats">
+                    <div class="nav">
+                        <div class="logo"><img :src="'./system/icons/others/' + (cloneMode ? 'logo-cloneApp.png' : 'logo-whats.png')"></div>
+                        <div class="nav-container">
+                            <div class="btn"><img src="./system/icons/others/camera-whats.png"></div>
+                            <div class="btn"><img src="./system/icons/others/lupa-whats.png"></div>
+                            <div class="btn"><img src="./system/icons/others/menu-whats.png"></div>
+                        </div>
+                    </div>
+
+                    <div class="btn-container chat-list">
+                        <template v-for="char in characters" :key="char.name">
+                            <div v-if="char.saved && (cloneMode ? char?.clone === true : char?.clone === false)" class="btn item" @click="navigateTo('WhatsChat', char)">
+                                <img class="avatar" :src="char.perfil">
+                                <div class="info">
+                                    <span>{{char.name}}</span>
+                                    <p>{{getLastMessage(char.name)}}</p>
+                                </div>
+                                <span class="pendent" v-if="!endVersion && !nextStory&& char === characters[currentCharStory] && currentEnvStory === 'chat'"/>
+                                <img class="pendent-call" src="./system/icons/others/call-pendent.png" v-if="!nextStory && char === characters[currentCharStory] && currentEnvStory === 'call'" />
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <NaveButtons @navigateTo="navigateTo" @goBack="goBack"/>               
+            `,
+            props: [
+                "appProps",
+                "posts",
+                "characters",
+                "currentPeriod",
+                "currentDay",
+                "temperature",
+                "randomWeatherIndex",
+                "storyNodeElement",
+                "storyNodeElement",
+                "currentCharStory",
+                "currentEnvStory",
+                "messageHistory",
+                "likedPosts",
+                "answerCall",
+                "endEvent",
+                "nextStory",
+                "storyNodes",
+                "storyNodePath",
+                "storyNodeIndex",
+                "waitAnotherCall",
+                "cloneMode",
+                "showApps"
+            ],
+            data() {
+                return {
+                    endVersion: false,
+                }
+            },
+            mounted() {
+                this.endVersion = this.storyNodes[this.storyNodePath].length === this.storyNodeIndex
+            },
+            emits: [
+                "navigateTo",
+                "goBack",
+                "setDialogueBox",
+                "advanceStory",
+                "editCharacter",
+                "setShowAlarm",
+                "likePostInsta",
+                "storyNodeRender",
+                "setWaitAnotherCall",
+                "setCloneMode",
+                "setAllowQuickSave"
+            ],
+            methods: {
+                navigateTo(app, props) {
+                    this.$emit("navigateTo", app, props)
+                },
+                goBack() {
+                    this.$emit("goBack");
+                },
+                getLastMessage(charName) {
+                    const charKey = Object.keys(this.characters).find(key => this.characters[key].name === charName ? key : "")
+                    const messages = this.messageHistory[charKey]
+                    if (!messages) return ""
+                    const lastMessage = messages[messages.length - 1]
+                    if (lastMessage?.dest === "s") return `Me: ${lastMessage?.text}`
+                    else if (lastMessage?.dest === "r" && lastMessage?.type === "image") return "Sent a photo"
+                    else if (lastMessage?.dest === "r" && lastMessage?.type === "video") return "Sent a video"
+                    else if (lastMessage?.dest === "r" && lastMessage?.prefix) return `${lastMessage.prefix}: ${lastMessage?.text}`
+                    else return lastMessage?.text
+                }
+            },
+            components: {
+                "NaveButtons": naveButtons
+            }
+        }
+
+        // -----------------------------------------------------------------
+
+        const home = {
+            template: `
+                <img class="wallpaper" src="./system/imgs/wallpaper.webp">
+
+                <div class="btn-container apps">
+                    <div class="weather-widget">
+                        <div class="wwctn">
+                            <div class="current-day">
+                                <img :src="periodImages[currentPeriod]">
+                                <span>{{days[currentDay]}} - {{periods[currentPeriod]}}</span>
+                            </div>
+                            <div class="others">
+                                <div>{{temperature}}°F</div>
+                                <span/>
+                                <img :src="weatherOptions[randomWeatherIndex]">
+                            </div>  
+                        </div>
+                    </div>                   
+                    <div v-for="app in apps.filter(e=> e?.show)" :key="app.icon" class="btn" @click="action(app?.action)">
+                        <img :src="'./system/icons/apps/' + app.icon">
+                    </div>
+                </div>
+
+                <div class="btn-container apps toolapps">
+                    <div v-for="app in toolapps" :key="app.icon" class="btn" @click="action(app?.action)">
+                        <img :src="'./system/icons/apps/' + app?.icon">
+                    </div>
+                </div>
+
+                <div class="btn-container menu-up">
+                    <img class="btn" src="./system/icons/others/menu-up.png">
+                </div>
+
+                <NaveButtons @navigateTo="navigateTo" @goBack="goBack"/>
+            `,
+            data() {
+                return {
+                    days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    periods: ['Morning', 'Afternoon', 'Night'],
+                    periodImages: [
+                        './system/icons/others/morning.png',
+                        './system/icons/others/afternoon.png',
+                        './system/icons/others/night.png'
+                    ],
+                    weatherOptions: [
+                        './system/icons/others/sun.png',
+                        './system/icons/others/cloud.png',
+                        './system/icons/others/rain.png',
+                        './system/icons/others/thunderstorm.png',
+                    ],
+                    apps: [
+                        { icon: "alarm.png", action: "advance", show: true },
+                        { icon: "store.png", action: "", show: true },
+                        { icon: "tiktok.png", action: "", show: true },
+                        { icon: "whatsapp.png", action: "Whats", show: true },
+                        { icon: "note.png", action: "", show: true },
+                        { icon: "insta.png", action: "Insta", show: true },
+                        { icon: "cloneApp.png", action: "Clone", show: this.showApps["clone"] },
+                    ],
+                    toolapps: [
+                        { icon: "phone.png", action: "PhoneApp" },
+                        { icon: "camera.png", action: "" },
+                        { icon: "music.png", action: "" },
+                        { icon: "config.png", action: "Config" }
+                    ]
+                }
+            },
+            props: [
+                "appProps",
+                "posts",
+                "characters",
+                "showDialogueBox",
+                "currentPeriod",
+                "currentDay",
+                "temperature",
+                "randomWeatherIndex",
+                "storyNodeElement",
+                "currentCharStory",
+                "currentEnvStory",
+                "messageHistory",
+                "likedPosts",
+                "answerCall",
+                "endEvent",
+                "nextStory",
+                "storyNodes",
+                "storyNodePath",
+                "storyNodeIndex",
+                "waitAnotherCall",
+                "cloneMode",
+                "showApps"
+            ],
+            emits: [
+                "goBack",
+                "navigateTo",
+                "setShowAlarm",
+                "setDialogueBox",
+                "editCharacter",
+                "advanceStory",
+                "likePostInsta",
+                "storyNodeRender",
+                "setWaitAnotherCall",
+                "setCloneMode",
+                "setAllowQuickSave"
+            ],
+            methods: {
+                action(action) {
+                    if (action) {
+                        if (action === "advance") this.$emit("setShowAlarm")
+                        else this.navigateTo(action)
+                    }
+                },
+                navigateTo(app) {
+                    if (app === "Clone") {
+                        this.$emit("setCloneMode", true)
+                        this.$emit("navigateTo", "Whats")
+                    }
+                    else if (app === "Whats") {
+                        this.$emit("setCloneMode", false)
+                        this.$emit("navigateTo", app)
+                    }
+                    else this.$emit("navigateTo", app)
+                },
+                goBack() {
+                    this.$emit("goBack");
+                }
+            },
+            components: {
+                "NaveButtons": naveButtons
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // --------------------------- Screens -----------------------------
+        // -----------------------------------------------------------------
+
+        const phoneScreen = {
+            template: `
+                <div class="phone">
+                    <div v-show="gameConfig.devMode" class="devSpace">
+                        <h1>Developer options</h1>
+                        <p style="fontSize:12px">This area is for developers only.</p>
+                        <button @click="dropSave">Drop Save</button>
+                        <p style="fontSize:12px">Dev, remember to disable developer mode before launching the game.</p>
+                    </div>
+                    <div v-show=togglePhone class="screen">
+                        <img class="template" src="./system/imgs/template.png">
+                        <component 
+                            :is="currentApp" 
+                            :posts="posts" 
+                            :appProps="appProps" 
+                            :storyNodeElement="storyNodeElement" 
+                            :characters="characters"
+                            :currentPeriod="currentPeriod"
+                            :currentDay="currentDay"
+                            :randomWeatherIndex="randomWeatherIndex"
+                            :temperature="temperature"
+                            :messageHistory="messageHistory"
+                            :currentEnvStory="currentEnvStory"
+                            :currentCharStory="currentCharStory"
+                            :likedPosts="likedPosts"
+                            :answerCall="answerCall"
+                            :endEvent="endEvent"
+                            :nextStory="nextStory"
+                            :storyNodeIndex="storyNodeIndex" 
+                            :storyNodes="storyNodes" 
+                            :storyNodePath="storyNodePath"
+                            :waitAnotherCall="waitAnotherCall"
+                            :cloneMode = "cloneMode"
+                            :showApps="showApps"
+                            @setWaitAnotherCall="setWaitAnotherCall"
+                            @advanceStory="advanceStory" 
+                            @setDialogueBox="setDialogueBox" 
+                            @setShowAlarm="setShowAlarm" 
+                            @goBack="goBack" 
+                            @navigateTo="navigateTo" 
+                            @editCharacter="editCharacter"
+                            @likePostInsta="likePostInsta"
+                            @storyNodeRender="storyNodeRender"
+                            @setCloneMode = "setCloneMode"
+                            @setAllowQuickSave = "setAllowQuickSave"
+                        />
+                        
+                        <Notification v-if="notifications.length"
+                            :notification="notifications[0]"
+                            @notificationsShift="notificationsShift"
+                            @navigateTo="navigateTo"
+                            @setCloneMode = "setCloneMode"
+                        />
+                    </div>
+
+                    <RenpyChoiceMenu v-if="choices.length" :choices="choices" @jump="jumpNode"/>
+                    <Alarm :storyNodeIndex="storyNodeIndex" :storyNodes="storyNodes" :storyNodePath="storyNodePath" :canAdvance="nextStory" v-if="showAlarm" @setShowAlarm="setShowAlarm" @advanceTime="advanceTime" />
+                    <DialogueBox v-if="dialogueBoxContent !== null" :currentEnvStory="currentEnvStory" :currentCharStory="currentCharStory" :content="dialogueBoxContent" :characters="characters" @advanceStory="advanceStory" @setDialogueBox="setDialogueBox"/>
+                    <audio v-if="soundSrc" :src="soundSrc" type="audio/mpeg" id="msg-sound" autoplay loop></audio>
+                </div>
+            `,
+            data() {
+                return {
+                    //Time
+                    currentPeriod: 0,
+                    currentDay: 0,
+                    randomWeatherIndex: 0,
+                    temperature: 84,
+
+                    //Navigation
+                    currentApp: "Home",
+                    appProps: {},
+                    appHistory: ["Home"],
+
+                    //Notifications
+                    notifications: [],
+
+                    //Story
+                    story: "",
+                    storyNodes: {},
+                    storyNodeElement: null,
+                    storyNodeIndex: 0,
+                    storyNodeIndexSaved: 1,
+                    storyNodePath: "start",
+                    messageHistory: {},
+                    pathHistory: ["start"],
+                    currentEnvStory: "chat",
+                    currentCharStory: "mc",
+                    charsToToggle: null,
+                    likedPosts: [],
+                    nextStory: false,
+                    changedCharacters: {},
+                    characters: {},
+                    state: {},
+
+                    // Dialogue box
+                    dialogueBoxContent: null,
+                    choices: [],
+
+                    // Others
+                    showAlarm: false,
+                    loading: true,
+                    answerCall: false,
+                    endEvent: false,
+                    soundSrc: null,
+                    gambOne: false,
+                    posts: [],
+                    waitAnotherCall: false,
+                    devMessage: false,
+                    gameConfig: gameConfig,
+                    togglePhone: true,
+                    cloneMode: false,
+                    showApps: {
+                        clone: false
+                    },
+                    allowQuickSave: true
+                }
+            },
+            created() {
+                this.getState()
+            },
+            mounted() {
+                this.initializeStoryAndCharacters();
+                this.storyNodeReader();
+                this.getHistory()
+                document.addEventListener('keydown', this.quickSave)
+            },
+            updated() {
+                if (!this.loading) this.saveState()
+            },
+            beforeUnmount() {
+                document.removeEventListener('keydown', this.quickSave);
+            },
+            methods: {
+                setAllowQuickSave() {
+                    this.allowQuickSave = !this.allowQuickSave
+                },
+                quickSave(event) {
+                    if (this.allowQuickSave && event.key === 'Shift') {
+                        const currentDateTime = new Date();
+                        const day = currentDateTime.getDate();
+                        const month = currentDateTime.getMonth() + 1;
+                        const year = currentDateTime.getFullYear();
+                        const hour = currentDateTime.getHours();
+                        const minute = currentDateTime.getMinutes();
+                        const saveName = 'Quick Save ' + (month < 10 ? '0' : '') + month + '/' + (day < 10 ? '0' : '') + day + '/' + year + ' ' + (hour < 10 ? '0' : '') + hour + ':' + (minute < 10 ? '0' : '') + minute;
+                        let saves = JSON.parse(localStorage.getItem(`${gameConfig.name}Saves`)) || [];
+                        const currentSave = JSON.parse(localStorage.getItem(`${gameConfig.name}Save`))
+                        saves.push({ ...currentSave, saveName });
+                        localStorage.setItem(`${gameConfig.name}Saves`, JSON.stringify(saves))
+                        alert("Game Saved")
+                    }
+                },
+                addOrRemoveApp(app) {
+                    if (!this.loading) {
+                        this.showApps[app] = !this.showApps[app]
+                        this.storyNodeIndex = this.storyNodeIndex + 1;
+                        this.storyNodeRender();
+                    }
+                },
+                initializeStoryAndCharacters() {
+                    this.story = this.getStory();
+                    this.characters = this.getCharacters();
+                },
+                getStory() {
+                    return `
+                    ### start
+                    ## dev
+                    ${story}
+                    !toggleChar forceDevFinalContent
+                    ## dev
+                    You've reached the end of this version.
+                    `
+                },
+                getCharacters() {
+                    const characterStrings = characters.trim().split(/\n\s*\n/);
+                    const chars = {};
+
+                    characterStrings.forEach(characterString => {
+                        const regex = /Character: (.+?)\nName: (.+?)\nPerfil: (.+?)\nAvailable: (.+?)\nIs Group: (.+?)\n(?:Clone App: (.+?)\n)?Text Color: (.+?)\nRelationships: (.+?)(?=\n|$)/;
+                        const match = regex.exec(characterString);
+
+                        if (match) {
+                            const key = match[1].trim().replace(/\s+/g, '').toLowerCase();
+
+                            const relationships = match[8].trim() !== "no" ? match[8].trim().split(', ').map(rel => {
+                                const trimmedRel = rel.trim().toLowerCase();
+                                return [trimmedRel, trimmedRel];
+                            }) : null;
+
+                            const character = {
+                                name: match[2].trim(),
+                                perfil: `./content/images/${match[3].trim()}`,
+                                saved: match[4].trim() === 'yes',
+                                group: match[5].trim() === 'yes',
+                                clone: match[6] ? match[6].trim() === 'yes' : false,
+                                textColor: match[7].trim(),
+                                rel: relationships,
+                                dev: key === "dev"
+                            };
+
+                            chars[key] = character;
+                        }
+                    });
+
+                    return chars;
+                },
+                dropSave() {
+                    localStorage.removeItem(`${gameConfig.name}Save`);
+                    window.alert("Current save removed. \nYou can load an old save (config > saves).")
+                    window.location.reload();
+                },
+                storyNodeReader() {
+                    const pathRegex = /^### (.+)$/gm;
+                    const nodes = {};
+                    let currentPath = '';
+
+                    const lines = this.story.split('\n');
+                    for (const line of lines) {
+                        const trimmedLine = line.trim();
+                        if (pathRegex.test(trimmedLine)) {
+                            currentPath = trimmedLine.replace('### ', '').trim();
+                            nodes[currentPath] = [];
+                        } else if (trimmedLine && currentPath) {
+                            nodes[currentPath].push(trimmedLine);
+                        }
+                    }
+
+                    this.storyNodes = nodes;
+                },
+                storyNodeRender() {
+                    if (this.storyNodes.hasOwnProperty("start")) {
+                        const patterns = [
+                            {
+                                regex: /^!if\s*\((.+)\)\s*(\S+)$/,
+                                func: (m) => {
+                                    const condition = m[1].trim();
+                                    const path = m[2].trim();
+                                    this.conditionNode(condition, path);
+                                }
+                            },
+                            { regex: /^!answer$/, func: () => this.callAnswer() },
+                            { regex: /^!next$/, func: (m) => this.nextNode() },
+                            { regex: /^&(.+?) (.+)$/, func: (m) => this.groupMessage(m[1], m[2]) },
+                            { regex: /^@ (.+)$/, func: (m) => this.messageNode("mc", m[1]) },
+                            { regex: /^!image ([^\s]+) (.+)$/, func: (m) => this.imageMessageNode("", m[1], m[2]) },
+                            { regex: /^@image ([^\s]+) (.+)$/, func: (m) => this.imageMessageNode("mc", m[1], m[2]) },
+                            { regex: /^@image ([^\s]+)$/, func: (m) => this.imageMessageNode("mc", m[1], "") },
+                            { regex: /^!image ([^\s]+)$/, func: (m) => this.imageMessageNode("", m[1], "") },
+                            { regex: /^!video ([^\s]+) (.+)$/, func: (m) => this.videoMessageNode("", m[1], m[2]) },
+                            { regex: /^@video ([^\s]+) (.+)$/, func: (m) => this.videoMessageNode("mc", m[1], m[2]) },
+                            { regex: /^@video ([^\s]+)$/, func: (m) => this.videoMessageNode("mc", m[1], "") },
+                            { regex: /^!video ([^\s]+)$/, func: (m) => this.videoMessageNode("", m[1], "") },
+                            { regex: /^!togglePhone$/, func: () => this.togglePhoneInterface() },
+                            { regex: /^!bg(?:\s+(.+))?$/, func: (m) => this.changeBackground(m[1] || "") },
+                            { regex: /^!cloneApp$/, func: () => this.addOrRemoveApp("clone") },
+                            { regex: /^([^!#*].*)$/, func: (m) => this.messageNode("", m[0]) },
+                            {
+                                regex: /^!post ([^\s]+) ([^\s]+) \*\*(.*?)\*\* (.+)$/, func: (m) => {
+                                    const comments = [];
+                                    const commentRegex = /'([^']*)' "([^"]*)"/g;
+                                    let match;
+                                    while (match = commentRegex.exec(m[4])) {
+                                        comments.push([match[1], match[2]]);
+                                    }
+                                    this.newPostInstaNode(m[2], m[1], m[3], comments);
+                                }
+                            },
+                            { regex: /^!perfil ([^\s]+)$/, func: (m) => this.newPhotoPerfilNode(m[1]) },
+                            {
+                                regex: /^!choice (.+)$/, func: (m) => {
+                                    const choices = [];
+                                    const choiceRegex = /'([^']*)' "([^"]*)"/g;
+                                    let match;
+                                    while (match = choiceRegex.exec(m[1])) {
+                                        choices.push([match[1], match[2]]);
+                                    }
+                                    this.newChoiceNode(choices);
+                                }
+                            },
+                            { regex: /^## (.+)$/, func: (m) => this.setEnvNode("chat", m[1]) },
+                            { regex: /^# (.+)$/, func: (m) => this.setEnvNode("call", m[1]) },
+                            {
+                                regex: /^\*\*(.+?)\*\*$/, func: (m) => {
+                                    const match = m[1].match(/^(.*?)-(.*?)$/);
+                                    if (match && match[1] != "sys") this.newDialNode(match[1], match[2], true)
+                                    else if (match && match[1] == "sys") this.newDialNode(match[1], match[2], false)
+                                    else this.newDialNode("mc", m[1], true)
+                                }
+                            },
+                            {
+                                regex: /^\*(.+?)\*$/, func: (m) => {
+                                    const match = m[1].match(/^(.*?)-(.*?)$/);
+                                    if (match) this.newDialNode(match[1], match[2], false);
+                                    else this.newDialNode("mc", m[1], false);
+                                }
+                            },
+                            { regex: /^\*sys-(.+?)\*$/, func: (m) => this.newDialNode("sys", m[1], false) },
+                            { regex: /^!jump (.+)$/, func: (m) => this.jumpNode(m[1]) },
+                            { regex: /^!audio ([^\s]+)$/, func: (m) => this.newAudioNode(m[1]) },
+                            { regex: /^!endCall$/, func: () => this.endCurrentEventNode() },
+                            {
+                                regex: /^!toggleChar (.+)$/, func: (m) => {
+                                    if (m[1] === "forceDevFinalContent") {
+                                        if (this.currentCharStory !== "dev") this.activeOrDisableCharNode(["dev"], []);
+                                        return
+                                    }
+
+                                    const keys = m[1].split(' ');
+                                    let activeArray = []
+                                    let desableArray = []
+
+                                    keys.forEach(key => {
+                                        if (this.characters.hasOwnProperty(key)) {
+                                            const char = this.characters[key];
+
+                                            if (char.saved) desableArray.push(key)
+                                            else activeArray.push(key)
+                                        }
+                                    })
+
+                                    this.activeOrDisableCharNode(activeArray, desableArray);
+                                }
+                            },
+                            {
+                                regex: /^!var ([^\s]+) = (.+)$/, func: (m) => {
+                                    const nomeVar = m[1];
+                                    const valor = m[2];
+                                    this.setVar(nomeVar, valor);
+                                }
+                            },
+                        ];
+
+                        const line = this.storyNodes[this.storyNodePath][this.storyNodeIndex]
+                        for (const pattern of patterns) {
+                            const match = line.match(pattern.regex);
+                            if (match) {
+                                pattern.func(match);
+                                break;
+                            }
+                        }
+                    }
+                },
+                changeBackground(src) {
+                    const extension = src.split('.').pop().toLowerCase();
+                    let videoElement = document.getElementById("background-video");
+
+                    if (extension === 'mp4' || extension === 'webm' || extension === 'ogg') {
+
+                        if (!videoElement) {
+                            videoElement = document.createElement("video");
+                            videoElement.id = "background-video";
+                            videoElement.style.position = "fixed";
+                            videoElement.style.objectFit = "cover";
+                            videoElement.style.top = "0";
+                            videoElement.style.left = "0";
+                            videoElement.style.width = "100%";
+                            videoElement.style.height = "100%";
+                            videoElement.style.zIndex = "-1";
+                            videoElement.autoplay = true;
+                            videoElement.loop = true;
+                            document.body.appendChild(videoElement);
+                        }
+
+                        videoElement.src = `./content/${src}`;
+                        videoElement.style.display = "block";
+                    } else {
+                        document.body.style.backgroundImage = `url(${src ? "./content/" + src : "./system/imgs/background.jpg"})`;
+
+                        if (videoElement) {
+                            videoElement.remove();
+                        }
+                    }
+
+                    if (!this.loading) {
+                        this.storyNodeIndex = this.storyNodeIndex + 1;
+                        this.storyNodeRender();
+                    }
+                },
+                togglePhoneInterface() {
+                    if (!this.loading) {
+                        this.togglePhone = !this.togglePhone
+
+                        if (!this.togglePhone) {
+                            this.storyNodeIndex = this.storyNodeIndex + 1
+                            this.storyNodeRender()
+                        }
+                    }
+                },
+                getHistory() {
+                    if (this.storyNodes.hasOwnProperty("start")) {
+                        let stop = false
+                        for (let pathIdx = 0; pathIdx < this.pathHistory.length; pathIdx++) {
+                            const path = this.pathHistory[pathIdx]
+                            if (path !== "start") this.jumpNode(path)
+                            if (stop) break;
+                            for (let lineIdx = 0; lineIdx < this.storyNodes[path].length; lineIdx++) {
+                                if (path === this.pathHistory[this.pathHistory.length - 1] && this.storyNodeIndex === this.storyNodeIndexSaved) {
+                                    stop = true
+                                    this.loading = false
+                                    break
+                                }
+                                else {
+                                    this.advanceStory(this.currentEnvStory, this.currentCharStory)
+                                }
+                            }
+                        }
+                    }
+                },
+                setVar(varName, varValue) {
+                    if (!this.loading) {
+                        this.state[varName] = varValue
+                        this.storyNodeIndex = this.storyNodeIndex + 1
+                        this.storyNodeRender()
+                    }
+                },
+                conditionNode(condition, path) {
+                    if (!this.loading) {
+                        const evaluateCondition = (condition, state) => {
+                            try {
+                                const fn = new Function('state', 'with(state) { return ' + condition + ' }');
+                                return fn(state);
+                            } catch (e) {
+                                return false;
+                            }
+                        };
+
+                        if (evaluateCondition(condition, this.state)) {
+                            this.jumpNode(path);
+                        }
+                        else {
+                            this.storyNodeIndex = this.storyNodeIndex + 1;
+                            this.storyNodeRender();
+                        }
+                    }
+                },
+                messageNode(prefix, text) {
+                    let localMessageHistoryChar = this.messageHistory[this.currentCharStory] || []
+                    localMessageHistoryChar = [...localMessageHistoryChar, { dest: prefix ? "s" : "r", text: this.mentionReader(text) }]
+                    this.messageHistory[this.currentCharStory] = localMessageHistoryChar
+                },
+                imageMessageNode(prefix, src, text) {
+                    const prefixSrc = `./content/images/${src}`
+                    let localMessageHistoryChar = this.messageHistory[this.currentCharStory] || []
+                    localMessageHistoryChar = [...localMessageHistoryChar, { type: "image", dest: prefix ? "s" : "r", text: this.mentionReader(text), src: prefixSrc }]
+                    this.messageHistory[this.currentCharStory] = localMessageHistoryChar
+                },
+                videoMessageNode(prefix, src, text) {
+                    const prefixSrc = `./content/videos/${src}`
+                    let localMessageHistoryChar = this.messageHistory[this.currentCharStory] || []
+                    localMessageHistoryChar = [...localMessageHistoryChar, { type: "video", dest: prefix ? "s" : "r", text: this.mentionReader(text), src: prefixSrc }]
+                    this.messageHistory[this.currentCharStory] = localMessageHistoryChar
+                },
+                groupMessage(prefix, text) {
+                    let localMessageHistoryChar = this.messageHistory[this.currentCharStory] || []
+                    if (prefix.charAt(0) !== prefix.charAt(0).toUpperCase()) {
+                        prefix = this.characters[prefix].name
+                    }
+                    localMessageHistoryChar = [...localMessageHistoryChar, { prefix, dest: "r", text: this.mentionReader(text) }]
+                    this.messageHistory[this.currentCharStory] = localMessageHistoryChar
+                },
+                newPostInstaNode(user, src, reaction, comments) {
+                    const prefixSrc = `./content/images/${src}`
+                    const loweUser = user?.toLowerCase()
+                    comments.forEach((comment, index) => {
+                        comments[index][0] = this.mentionReader(comment[0])
+                        comments[index][1] = this.mentionReader(comment[1])
+                    })
+
+                    const newId = this.posts[0]?.id ? this.posts[0].id + 1 : 1
+                    this.posts.unshift({
+                        id: newId,
+                        character: loweUser,
+                        liked: false,
+                        src: prefixSrc,
+                        reaction: this.mentionReader(reaction),
+                        comments
+                    })
+
+                    this.addNotification({ type: "i", char: this.characters[loweUser] })
+                    this.storyNodeIndex = this.storyNodeIndex + 1
+                    this.storyNodeRender()
+                },
+                newPhotoPerfilNode(src) {
+                    const prefixSrc = `./content/images/${src}`
+                    this.characters[this.currentCharStory].perfil = prefixSrc
+                    this.storyNodeIndex = this.storyNodeIndex + 1
+                    this.storyNodeRender()
+                },
+                newChoiceNode(choices) {
+                    this.choices = choices.map(choice => ([this.mentionReader(choice[0]), choice[1]]))
+                },
+                setEnvNode(env, char) {
+                    const oldChar = this.currentCharStory
+                    const oldEnv = this.currentEnvStory
+                    const nextLine = this.storyNodes[this.storyNodePath][this.storyNodeIndex + 1]
+
+                    this.currentEnvStory = env
+                    this.currentCharStory = char
+
+                    if (this.charsToToggle) {
+                        Object.keys(this.charsToToggle).forEach(charKey => {
+                            this.characters[charKey].saved = this.charsToToggle[charKey]
+                        })
+
+                        this.charsToToggle = null
+                    }
+
+                    if (env === "chat" && !this.loading) { //Notification condition
+                        if (this.currentCharStory === "dev") this.devMessage = true
+                        else this.devMessage = false
+
+                        if (!this.gambOne && this.currentEnvStory === oldEnv && this.currentCharStory === oldChar) return;
+                        const regex = /^@ /; //MC message
+                        const regexTwo = /^\*/ //Dial
+                        const groupMessageRegex = /&(.+?) (.+)$/
+                        this.gambOne = false
+                        const currentCharObj = this.characters[this.currentCharStory]
+
+                        if (!regex.test(nextLine) && !regexTwo.test(nextLine) && !currentCharObj.clone) {
+                            const match = nextLine.match(groupMessageRegex)
+                            const prefix = match && match[1] || ""
+                            const text = prefix ? match[2] : nextLine
+                            this.storyNodeIndex = this.storyNodeIndex + 1
+                            this.storyNodeRender()
+                            this.addNotification({ type: "w", text: this.mentionReader(text), char: this.characters[char], prefix: match ? this.characters[prefix]?.name : prefix })
+                        }
+                    }
+
+                    if (env === "call") {
+                        if (oldChar === this.currentCharStory && oldEnv === this.currentEnvStory) {
+                            this.setWaitAnotherCall(true)
+                        }
+                        this.answerCall = false
+                        this.$nextTick(() => { this.endEvent = false })
+                        const regex = /^!answer$/;
+
+                        if (regex.test(nextLine)) {
+                            this.storyNodeIndex = this.storyNodeIndex + 1
+                            this.storyNodeRender()
+                        }
+                    }
+                },
+                newDialNode(charKey, text, thinking) {
+                    this.dialogueBoxContent = { charKey, thinking, text: this.mentionReader(text) }
+                },
+                jumpNode(newPath, isChoide = false) {
+                    this.choices = []
+                    if (!this.loading) this.pathHistory.push(newPath)
+                    this.storyNodePath = newPath
+                    this.storyNodeIndex = 0
+                    if (!this.loading) {
+                        if (isChoide) this.advanceStory(this.currentEnvStory, this.currentCharStory)
+                        else this.storyNodeRender()
+                    }
+                },
+                newAudioNode(src) {
+                    const prefixSrc = `./content/audios/${src}`
+                    this.soundSrc = prefixSrc
+                    this.storyNodeIndex = this.storyNodeIndex + 1
+                    this.storyNodeRender()
+                },
+                endCurrentEventNode() {
+                    this.endEvent = true
+                    this.soundSrc = null
+                    this.storyNodeIndex = this.storyNodeIndex + 1
+                    this.storyNodeRender()
+                },
+                activeOrDisableCharNode(activeArray, disableArray) {
+                    let changedChars = {}
+
+                    activeArray?.forEach(charKey => {
+                        changedChars[charKey] = true
+                        this.messageHistory[charKey] = []
+                    })
+
+                    disableArray?.forEach(charKey => {
+                        changedChars[charKey] = false
+                    })
+
+                    this.charsToToggle = changedChars
+
+                    this.storyNodeIndex = this.storyNodeIndex + 1
+                    this.storyNodeRender()
+                },
+                mentionReader(text) {
+                    const regex = /@(?!video|image)(\w+)/g;
+                    const matches = text.match(regex);
+                    if (matches) {
+                        matches.forEach(match => {
+                            const mention = match.substring(1);
+
+                            Object.keys(this.characters).forEach(key => {
+                                if (key === mention) text = text.replace(match, this.characters[key].name);
+                            })
+
+                            Object.values(this.characters).forEach(char => {
+                                const rel = char?.rel
+
+                                if (rel?.length > 0) {
+                                    if (rel[0][0] === mention) text = text.replace(match, char.rel[0][1]);
+                                    if (rel[1][0] === mention) text = text.replace(match, char.rel[1][1]);
+                                }
+                            })
+                        });
+                    }
+                    return text;
+                },
+                nextNode() {
+                    if (!this.loading) {
+                        this.nextStory = true
+                        this.gambOne = true
+                    }
+                },
+                callAnswer() {
+                    this.answerCall = true
+                },
+                likePostInsta(id) {
+                    if (this.likedPosts.includes(id)) this.likedPosts.splice(this.likedPosts.indexOf(id), 1)
+                    else {
+                        const post = this.posts.find(e => e.id === id)
+                        this.likedPosts.push(id)
+                        if (post.reaction && post.reaction !== " ") this.dialogueBoxContent = { charKey: "mc", thinking: true, text: post.reaction, single: true }
+                    }
+                },
+                goBack() {
+                    if (this.appHistory.length > 1) {
+                        this.appHistory.pop();
+                        const newCurrentApp = this.appHistory[this.appHistory.length - 1];
+                        if (newCurrentApp === "WhatsChat") {
+                            this.currentApp = "Whats"
+                            this.appHistory.pop();
+                        } else this.currentApp = newCurrentApp
+                    }
+                },
+                navigateTo(app, props) {
+                    if (app) {
+                        this.$nextTick(() => {
+                            if (app === "Whats" || app === "Insta") this.appHistory = ["Home", app]
+                            else if (app != "Home" && !this.appHistory.includes(app)) this.appHistory.push(app);
+                            else if (app === "Home") this.appHistory = ["Home"]
+                            this.currentApp = app;
+                            this.appProps = props;
+                        })
+                    }
+                },
+                notificationsShift() {
+                    this.notifications.shift()
+                },
+                setShowAlarm() {
+                    this.showAlarm = !this.showAlarm;
+                },
+                setDialogueBox(content) {
+                    this.dialogueBoxContent = content
+                },
+                advanceStory(env, char) {
+                    if (this.storyNodeIndex < this.storyNodes[this.storyNodePath].length) {
+                        // if (!this.loading && !this.togglePhone) {
+                        //     this.advanceStoryEng(env, char)
+                        // }
+                        if (this.loading) this.advanceStoryEng(env, char)
+                        else if (!this.nextStory && env === this.currentEnvStory && char === this.currentCharStory) {
+                            this.advanceStoryEng(env, char)
+                        }
+                    }
+                },
+                advanceStoryEng(env, char) {
+                    this.dialogueBoxContent = null
+                    this.storyNodeRender()
+                    this.storyNodeIndex = this.storyNodeIndex + 1
+
+                    const callRegex = /^# (.+)$/;
+                    const chatRegex = /^## (.+)$/;
+                    const jumpRegex = /^!jump (.+)$/
+                    const dialRegex = /^\*/
+                    const nextLine = this.storyNodes[this.storyNodePath][this.storyNodeIndex]
+                    const currentLine = this.storyNodes[this.storyNodePath][this.storyNodeIndex - 1]
+
+                    if ((!dialRegex.test(currentLine) && (callRegex.test(nextLine) || chatRegex.test(nextLine) || jumpRegex.test(nextLine))) && !this.loading) {
+                        this.advanceStory(env, char)
+                    }
+
+                    if (!this.loading) this.saveState()
+                },
+                advanceTime(generateWeatherInfo = true) {
+                    if (this.nextStory) {
+                        const localCurrentPeriod = this.currentPeriod + 1;
+                        const localCurrentDay = this.currentDay + 1;
+
+                        if (localCurrentPeriod > 2) {
+                            if (localCurrentDay > 6) this.currentDay = 0
+                            else this.currentDay = localCurrentDay
+                            this.currentPeriod = 0
+                        }
+                        else this.currentPeriod = localCurrentPeriod;
+
+                        if (generateWeatherInfo) this.generateWeatherInfo()
+
+                        this.showAlarm = false
+                        this.nextStory = false
+                        this.advanceStory(this.currentEnvStory, this.currentCharStory)
+                    }
+                },
+                generateWeatherInfo() {
+                    this.randomWeatherIndex = Math.floor(Math.random() * 4);
+                    this.temperature = Math.floor(Math.random() * 25) + 10;
+                    this.temperature = this.celsiusToFahrenheit(this.temperature);
+                },
+                celsiusToFahrenheit(celsius) {
+                    return (celsius * 9 / 5) + 32;
+                },
+                addNotification(notification) {
+                    const regex = /^!post /;
+
+                    if (!this.loading && !this.notifications.includes(notification)) {
+                        if (notification.text && regex.test(notification.text)) return
+                        this.notifications.push(notification)
+                        if (!this.togglePhone && !this.loading) {
+                            this.storyNodeIndex = this.storyNodeIndex + 1
+                            this.storyNodeRender()
+                        }
+                    }
+                },
+                getState() {
+                    let localSave = JSON.parse(localStorage.getItem(`${gameConfig.name}Save`));
+
+                    const saveStructure = {
+                        changedCharacters: localSave?.changedCharacters || this.changedCharacters,
+                        currentPeriod: localSave?.currentPeriod || this.currentPeriod,
+                        currentDay: localSave?.currentDay || this.currentDay,
+                        randomWeatherIndex: localSave?.randomWeatherIndex || this.randomWeatherIndex,
+                        temperature: localSave?.temperature || this.temperature,
+                        storyNodeIndexSaved: localSave?.storyNodeIndexSaved || this.storyNodeIndexSaved,
+                        pathHistory: localSave?.pathHistory || this.pathHistory,
+                        likedPosts: localSave?.likedPosts || this.likedPosts,
+                        nextStory: localSave?.nextStory || this.nextStory,
+                        state: localSave?.state || this.state,
+                        cloneMode: localSave?.cloneMode || this.cloneMode,
+                        showApps: localSave?.showApps || this.showApps,
+                        togglePhone: localSave?.togglePhone || this.togglePhone
+                    }
+
+                    this.changedCharacters = saveStructure.changedCharacters
+                    this.randomWeatherIndex = saveStructure.randomWeatherIndex
+                    this.temperature = saveStructure.temperature
+                    this.currentPeriod = saveStructure.currentPeriod
+                    this.currentDay = saveStructure.currentDay
+                    this.storyNodeIndexSaved = saveStructure.storyNodeIndexSaved
+                    this.pathHistory = saveStructure.pathHistory
+                    this.likedPosts = saveStructure.likedPosts
+                    this.characters = { ...this.characters, ...saveStructure.changedCharacters }
+                    this.nextStory = saveStructure.nextStory
+                    this.state = saveStructure.state
+                    this.cloneMode = saveStructure.cloneMode
+                    this.showApps = saveStructure.showApps
+                    this.togglePhone = localSave?.hasOwnProperty('togglePhone') ? localSave.togglePhone : this.togglePhone
+                },
+                saveState() {
+                    const saveStructure = {
+                        currentPeriod: this.currentPeriod,
+                        currentDay: this.currentDay,
+                        temperature: this.temperature,
+                        randomWeatherIndex: this.randomWeatherIndex,
+                        storyNodeIndexSaved: this.devMessage ? JSON.parse(localStorage.getItem(`${gameConfig.name}Save`)).storyNodeIndexSaved : this.storyNodeIndex,
+                        pathHistory: this.pathHistory,
+                        likedPosts: this.likedPosts,
+                        changedCharacters: this.changedCharacters,
+                        nextStory: this.nextStory,
+                        state: this.state,
+                        gameName: gameConfig.name,
+                        cloneMode: this.cloneMode,
+                        showApps: this.showApps,
+                        togglePhone: this.togglePhone
+                    }
+                    localStorage.setItem(`${gameConfig.name}Save`, JSON.stringify(saveStructure))
+                },
+                editCharacter(charKey, newData) {
+                    const newInfo = { ...this.characters[charKey], ...newData }
+                    this.characters[charKey] = newInfo
+                    this.changedCharacters[charKey] = newInfo
+                },
+                setWaitAnotherCall(value) {
+                    this.waitAnotherCall = value
+                },
+                setCloneMode(value) {
+                    this.cloneMode = value
+                },
+            },
+            components: {
+                "Home": home,
+                "Insta": insta,
+                "PhoneApp": phoneApp,
+                "PhoneCall": phoneCall,
+                "Whats": whats,
+                "WhatsChat": whatsChat,
+                "NewContact": newContact,
+                "Config": config,
+                "Notification": notification,
+                "Alarm": alarm,
+                "DialogueBox": dialogueBox,
+                "RenpyChoiceMenu": renpyChoiceMenu
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // --------------------------- System ------------------------------
+        // -----------------------------------------------------------------
+
+        Vue.createApp({
+            components: {
+                "Phone": phoneScreen
+            },
+        }).mount('#app')
+    </script>
+</body>
+
+</html>

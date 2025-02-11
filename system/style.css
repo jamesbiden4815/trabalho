@@ -1,0 +1,1538 @@
+/* @font-face {
+    font-family: 'HelveticaNeue';
+    src: url('./fonts/HelveticaNeue.otf') format('opentype');
+} */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-image: url("../system/imgs/background.jpg");
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    min-height: 100vh;
+    margin: 0;
+    font-family: sans-serif;
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.dev-notification {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-bottom: 5px;
+    text-align: center;
+    cursor: default;
+}
+
+.devSpace {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 5px;
+    position: absolute;
+    background-color: rgb(192, 65, 65);
+    color: #FFF;
+    padding: 20px;
+    right: 60%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid #000;
+    border-radius: 5px;
+    width: 400px;
+    z-index: 999999999999999999999999;
+}
+
+.devSpace button {
+    padding: 10px;
+}
+
+.phone {
+    margin: auto;
+    width: 460px;
+    position: relative;
+    height: 100vh;
+    max-height: 945px;
+    display: flex;
+    justify-content: center;
+}
+
+.screen {
+    position: absolute;
+    top: 0%;
+    width: 96%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 60px;
+}
+
+.template {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 999;
+}
+
+.phone .wallpaper {
+    width: 98%;
+    height: 100%;
+    object-fit: cover;
+    object-position: left;
+    display: block;
+    border-radius: 65px;
+}
+
+.btn {
+    display: flex;
+    justify-content: center;
+    border-radius: 10%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #cccccca1;
+}
+
+.btn-container {
+    position: absolute;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-evenly;
+}
+
+.phone .nav-buttons {
+    bottom: 1.3%;
+    width: 65%;
+    flex-flow: row nowrap;
+}
+
+.phone .nav-buttons .btn {
+    width: auto;
+    height: auto;
+}
+
+.phone .nav-buttons .btn img {
+    width: 50%;
+    height: auto;
+}
+
+/* ============= Home Screen ================*/
+.apps {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: initial;
+    width: 83%;
+    gap: 15px;
+}
+
+.apps .btn {
+    display: flex;
+    width: 80px;
+    flex: 0 1 22%;
+    max-width: 80px
+}
+
+.apps .btn img {
+    width: 100%;
+    height: auto;
+}
+
+.menu-up {
+    bottom: 145px;
+}
+
+.toolapps {
+    bottom: 60px;
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.apps .weather-widget {
+    width: 100%;
+    height: 160px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.apps .weather-widget .wwctn {
+    width: 40%;
+    background-color: #00000084;
+    padding: 10px;
+    border-radius: 15px;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+    color: #FFF;
+}
+
+.apps .weather-widget .current-day {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 10px;
+    align-items: center;
+    border-bottom: 2px solid rgba(231, 223, 223, 0.509);
+    width: 100%;
+    padding-bottom: 5px;
+}
+
+.apps .weather-widget .current-day img {
+    width: 80px;
+}
+
+.apps .weather-widget .others {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    width: 80%;
+    padding-top: 5px;
+    align-items: center;
+}
+
+.apps .weather-widget .others div:nth-child(1) {
+    font-size: 14px;
+}
+
+.apps .weather-widget .others img {
+    width: 20px;
+}
+
+.apps .weather-widget .others span {
+    border-right: 2px solid rgba(231, 223, 223, 0.509);
+    height: 80%;
+}
+
+/*================= Choices Modal ================*/
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 998;
+    display: block;
+}
+
+.modal {
+    position: absolute;
+    bottom: 9px;
+    left: 22px;
+    transform: translateX(-50%);
+    background-color: #ffffff;
+    border-radius: 55px;
+    padding: 40px 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 999;
+    width: 90.8%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: auto;
+}
+
+.modal p {
+    margin-bottom: 15px;
+    font-size: 17px;
+    text-align: center;
+    width: 90%;
+}
+
+.modal-btn-container {
+    display: flex;
+    width: 100%;
+    margin-top: 15px;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-btn {
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 80%;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    background-color: #cccccca1;
+}
+
+.modal-btn:hover {
+    background-color: #a4a0a0bd;
+}
+
+/*==================== Whats home ===================*/
+.whats {
+    background-color: white;
+    width: 98%;
+    height: 100%;
+    border-radius: 12%;
+}
+
+.whats .nav {
+    width: 100%;
+    height: 6.5%;
+    left: 10px;
+    top: 0;
+    border-bottom: rgba(128, 128, 128, 0.493) 1px solid;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    gap: 50px;
+    align-items: center;
+}
+
+.whats .nav .logo {
+    margin-left: 7%;
+    margin-top: 2%;
+    width: 28%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.whats .nav .logo img {
+    width: 100%;
+    height: auto;
+}
+
+.whats .nav-container {
+    margin-right: 3%;
+    width: 30%;
+    position: absolute;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    top: 2.1%;
+    right: 2%;
+}
+
+.whats .nav-container .btn {
+    padding: 4px;
+}
+
+.whats .nav-container img {
+    width: 24px;
+    height: 24px;
+}
+
+.whats .chat-list {
+    width: 97%;
+    height: 88.3%;
+    left: 2%;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    overflow-x: hidden;
+}
+
+.whats .chat-list::-webkit-scrollbar {
+    display: none;
+}
+
+.whats .chat-list .item {
+    margin-left: 1%;
+    width: 97.5%;
+    height: 10%;
+    border-radius: 0;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 4%;
+    position: relative;
+}
+
+.whats .avatar {
+    border-radius: 50%;
+    width: auto;
+    height: 80%;
+}
+
+.whats .chat-list .item .info {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
+    padding-left: 3%;
+    gap: 9px;
+}
+
+.whats .chat-list .item .info span {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.whats .chat-list .item .info p {
+    font-size: 15px;
+    overflow: hidden;
+    height: 20px;
+    width: 270px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.whats .chat-list .item .pendent {
+    padding: 10px;
+    border-radius: 50%;
+    background-color: #2fa46b;
+    right: 5%;
+    position: absolute;
+    width: 20px;
+}
+
+.whats .chat-list .item .pendent-call {
+    right: 5%;
+    position: absolute;
+    width: 20px;
+}
+
+/*================= Whats chat ================*/
+
+.whats .nav .chat-opened {
+    left: 2%;
+    width: auto;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    padding-right: 5px;
+}
+
+.whats .nav .chat-opened img {
+    width: auto;
+}
+
+.whats .nav span {
+    width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.whats .nav .chat {
+    margin-top: -2px;
+}
+
+.whats .nav .chat-opened-nav-itens img {
+    width: 24px;
+    height: 24px;
+    padding: 2px;
+}
+
+.whats .chat {
+    background-image: url("../system/imgs/whats-wallpaper.jpg");
+    width: 100%;
+    height: 88.5%;
+    border-radius: 0 0 10px 10px;
+}
+
+.whats .chat .messages {
+    height: 93.8%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: baseline;
+    overflow: auto;
+    gap: 8px;
+    padding-top: 8px;
+}
+
+.whats .chat .messages .person {
+    /* color: #27a768; */
+    font-size: 12px;
+}
+
+.whats .chat .messages::-webkit-scrollbar {
+    display: none;
+}
+
+.chat .decorative-options-bottom {
+    position: absolute;
+    bottom: 5.5%;
+    display: flex;
+    flex-flow: row nowrap;
+    left: 4%;
+    width: 92%;
+    justify-content: space-between;
+}
+
+.chat .decorative-options-bottom .white-contend-box {
+    background-color: white;
+    display: flex;
+    flex-flow: row nowrap;
+    padding: 5px;
+    border-radius: 100px;
+    width: 89%;
+    gap: 10px
+}
+
+.chat .decorative-options-bottom .white-contend-box input {
+    width: 100%;
+    border: none;
+    background-color: white;
+    cursor: pointer;
+    outline: none;
+}
+
+.chat .decorative-options-bottom .white-contend-box div {
+    padding: 4px;
+    border-radius: 50%;
+}
+
+.chat .decorative-options-bottom .mic-button {
+    background-color: #27a768;
+    width: 10%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+}
+
+.chat .decorative-options-bottom .mic-button img {
+    width: 24px;
+    height: 24px;
+}
+
+.message {
+    position: relative;
+    max-width: 70%;
+    padding: 8px;
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 4px;
+}
+
+#msg-sound {
+    display: none;
+}
+
+.message:before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
+
+.message.sent {
+    background: #e1ffc7;
+    border-radius: 5px 0px 5px 5px;
+    float: right;
+    margin-right: 5%;
+    align-self: flex-end;
+}
+
+.message.sent:before {
+    border-width: 10px 10px 0 0;
+    border-color: #e1ffc7 transparent transparent transparent;
+    top: 0;
+    right: -10px;
+}
+
+.message.received {
+    background: #fff;
+    border-radius: 0px 5px 5px 5px;
+    float: left;
+    margin-left: 5%;
+}
+
+.message.received:before {
+    border-width: 10px 10px 0 10px;
+    border-color: #fff transparent transparent transparent;
+    top: 0;
+    left: -10px;
+}
+
+.message img {
+    width: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.expanded img {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: contain;
+    z-index: 1000;
+    cursor: pointer;
+}
+
+.message video {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    cursor: pointer;
+    min-height: 161.39px;
+}
+
+/*==================== dialogue-box ================== */
+
+.dialogue-box {
+    background: linear-gradient(to right, #333333b5, #000000ab, #000000ab, #333333b5);
+    position: absolute;
+    bottom: 0;
+    width: 100vw;
+    min-height: 25vh;
+    z-index: 99999;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+}
+
+.dialogue-box .content {
+    width: 700px;
+    height: 20%;
+    z-index: 2;
+    padding: 10px;
+    color: #ccccc8;
+    max-width: 958px;
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 15px;
+    height: 100%;
+}
+
+.dialogue-box .content span {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.dialogue-box .content p {
+    font-size: 19px;
+}
+
+/* ========== Choices ========= */
+
+.choices {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 20px;
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    width: 75%;
+}
+
+.choices .option {
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    color: #FFF;
+    background: linear-gradient(to right, #333333, #000000e8, #000000ed, #333333);
+    border-radius: 5px;
+    font-size: 18px;
+}
+
+.choices .option:hover {
+    background: linear-gradient(to right, #64626294, #1e1d1d71, #64626294);
+}
+
+.choices .prompt {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    gap: 5px;
+}
+
+.choices .prompt div {
+    width: 48px;
+    height: 50px;
+    background-color: #1e1d1d91;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 30%;
+}
+
+.choices .prompt div img {
+    width: 24px;
+    height: 24px;
+    margin-left: 3px;
+}
+
+.choices input {
+    border: none;
+    padding: 10px;
+    width: 60%;
+    border-radius: 20px;
+    background-color: #1e1d1d91;
+    outline: none;
+    color: #FFF;
+    font-size: 17px;
+    text-align: center;
+}
+
+/* ============== Notification ============ */
+
+.phone .screen .notification {
+    background-color: #b3afaf;
+    position: absolute;
+    top: 0;
+    width: 96%;
+    height: auto;
+    padding: 20px 20px 25px 20px;
+    border-radius: 50px 50px 30px 30px;
+    z-index: 1;
+    cursor: pointer;
+}
+
+.phone .screen .notification .header {
+    margin: 5px 0 6px 0;
+    display: flex;
+    flex-flow: row nowrap;
+    width: 100%;
+    align-items: center;
+    gap: 3px;
+}
+
+.phone .screen .notification .icon {
+    width: 25px;
+    display: flex;
+    align-items: center;
+}
+
+.phone .screen .notification .icon img {
+    width: 100%;
+    height: auto;
+}
+
+.phone .screen .notification .header span {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.phone .screen .notification .content {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 5px;
+    width: 100%;
+    margin-left: 3px;
+}
+
+.phone .screen .notification .content span {
+    font-weight: bold;
+}
+
+/* ============== Phone-app ============ */
+
+.phone-app {
+    background-color: #FFF;
+    width: 96%;
+    height: 100%;
+    border-radius: 60px;
+}
+
+.phone-app .nav {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    width: 100%;
+    height: 95px;
+    justify-content: flex-end;
+}
+
+.phone-app .nav .search {
+    padding: 10px;
+    background-color: #d8d5d5b0;
+    border-radius: 10px;
+    outline: none;
+    border: none;
+    width: 90%;
+    cursor: text;
+}
+
+.phone-app .phone-list {
+    width: 100%;
+    height: 84.4%;
+    padding: 13.5px 0;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.phone-app .phone-list::-webkit-scrollbar {
+    display: none;
+}
+
+.phone-app .phone-list .person {
+    display: flex;
+    flex-flow: row nowrap;
+    width: 99%;
+    justify-content: flex-start;
+    gap: 15px;
+    height: 10%;
+    border-radius: 0;
+    align-items: center;
+    padding-left: 22px;
+    margin-left: 1%;
+}
+
+.phone-app .phone-list .person img:nth-child(1) {
+    width: auto;
+    height: 85%;
+    border-radius: 50%;
+}
+
+.phone-app .phone-list .person img:last-child {
+    margin-left: auto;
+    margin-right: 20px;
+    padding: 10px;
+}
+
+.phone-list .add-button {
+    background-color: #27a768;
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    bottom: 7%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    right: 7%;
+    border-radius: 50%;
+    display: none;
+}
+
+.phone .phone-call {
+    background: linear-gradient(to bottom, #7e95c1, #2d3b53);
+    width: 96%;
+    height: 100%;
+    border-radius: 60px;
+}
+
+.phone .phone-call .content {
+    width: 100%;
+    height: 95%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-around;
+}
+
+.phone .phone-call .content .info {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: 20px;
+}
+
+.phone .phone-call .content .info img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+}
+
+.phone .phone-call .content .info span {
+    color: #FFF;
+    font-size: 30px;
+}
+
+.phone .phone-call .content .info p {
+    color: #e4e0e0;
+}
+
+.phone .phone-call .content .actions {
+    display: flex;
+    justify-content: center;
+}
+
+.phone .phone-call .content .end-call {
+    background-color: red;
+    width: 75px;
+    height: 75px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+}
+
+.phone .phone-call .content .end-call img {
+    width: 24px;
+    height: auto;
+}
+
+/* ========= New Contact ========= */
+.phone .new-contact {
+    background-color: #302c2c;
+    height: 100%;
+    width: 96%;
+    border-radius: 60px;
+}
+
+.phone .new-contact .content {
+    height: 95%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.phone .new-contact .content .info {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 20px;
+    align-items: center;
+}
+
+.phone .new-contact .content .info .profile {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    margin-top: 120px;
+    gap: 30px;
+}
+
+.phone .new-contact .content .info .profile img {
+    width: 40%;
+    height: auto;
+    border-radius: 50%;
+}
+
+.phone .new-contact .content .info .inp {
+    padding: 10px;
+    width: 60%;
+    border-radius: 10px;
+    border: none;
+    background-color: #e0e3e9;
+    text-align: center;
+    font-size: 16px;
+    outline: none
+}
+
+.phone .new-contact .content .info .rel {
+    background-color: #e0e3e9;
+    width: 60%;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    padding: 10px;
+    border-radius: 10px;
+    gap: 10px;
+}
+
+.phone .new-contact .content .info .rel .inp {
+    width: 100%;
+}
+
+.phone .new-contact .content .add-button {
+    background-color: #e0e3e9;
+    ;
+    margin-bottom: 20px;
+    padding: 20px;
+    width: 60%;
+    border-radius: 10px;
+    text-align: center;
+
+}
+
+/* ============== Insta =============== */
+.phone .insta {
+    background-color: #FFF;
+    width: 96%;
+    height: 100%;
+    border-radius: 60px;
+}
+
+.phone .insta .content {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
+    width: 100%;
+    height: 94.8%;
+}
+
+.phone .insta .content .header {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    width: 100%;
+    height: 7%;
+    border-bottom: rgba(0, 0, 0, 0.066) 1px solid;
+}
+
+.phone .insta .content .header .nave {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 30%;
+    margin-right: 20px;
+    margin-top: 8px;
+}
+
+.phone .insta .content .header .nave div {
+    padding: 5px
+}
+
+.phone .insta .content .header .nave img {
+    width: 24px;
+    height: 24px;
+}
+
+.phone .insta .content .header .logo {
+    width: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 13px;
+    margin-left: 23px;
+}
+
+.phone .insta .content .header .logo img {
+    width: 100%;
+}
+
+.no-posts-message {
+    background-color: #eae2e25f;
+    padding: 60px;
+    width: 90%;
+    align-self: center;
+    text-align: center;
+    border-radius: 20px;
+    font-size: 20px;
+    border: 1px solid #000;
+}
+
+.phone .insta .content .posts {
+    width: 100%;
+    height: 100%;
+    flex-flow: column nowrap;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.phone .insta .content .posts::-webkit-scrollbar {
+    display: none;
+}
+
+.phone .insta .content .post {
+    display: flex;
+    flex-flow: column nowrap;
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.phone .insta .content .posts .post .thumb {
+    width: 100%;
+    height: auto;
+}
+
+.phone .insta .content .posts .post .person {
+    position: absolute;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+    color: #FFF;
+    gap: 10px;
+    font-weight: bold;
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
+.phone .insta .content .posts .post .person img {
+    width: 36px;
+    border-radius: 50%;
+}
+
+.phone .insta .content .posts .post .actions {
+    display: flex;
+    flex-flow: row nowrap;
+    gap: 5px;
+    margin: 5px 10px;
+    padding-bottom: 5px;
+    border-bottom: rgba(0, 0, 0, 0.066) 1px solid;
+}
+
+.phone .insta .content .posts .post .actions div {
+    padding: 10px;
+    gap: 5px;
+    align-items: center;
+}
+
+.phone .insta .content .posts .post .actions div img {
+    width: 24px;
+    height: 24px;
+}
+
+.phone .insta .content .posts .post .comment-list {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 10px;
+}
+
+.phone .insta .content .posts .post .comment {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    margin-left: 5px;
+    margin-top: 6px;
+}
+
+.phone .insta .content .posts .post .comment .person {
+    width: 60px;
+    display: flex;
+    position: initial;
+    align-items: center;
+    margin: 0;
+}
+
+.phone .insta .content .posts .post .comment img {
+    width: 40px;
+    height: auto;
+}
+
+.phone .insta .content .posts .post .comment .text {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 5px;
+    margin-left: 20px;
+}
+
+.phone .insta .content .posts .post .comment .text span {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.phone .insta .content .posts .post .comment .text p {
+    font-size: 15px;
+}
+
+.phone .insta .content .footer {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-around;
+    border-bottom: rgba(0, 0, 0, 0.066) 1px solid;
+}
+
+.phone .insta .content .footer div {
+    padding: 10px;
+}
+
+.phone .insta .content .footer img {
+    width: 24px;
+    height: 24px;
+}
+
+
+/* Config */
+.phone .config {
+    background-color: #FFF;
+    width: 96%;
+    height: 100%;
+    border-radius: 60px;
+}
+
+.phone .config .content {
+    display: flex;
+    flex-flow: column nowrap;
+    width: 100%;
+    height: 94.8%;
+}
+
+.phone .config .prompt {
+    width: 96.5%;
+    height: 100%;
+    background-color: #00000098;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    border-radius: 60px;
+}
+
+.phone .config .prompt .bla {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+    background-color: #F9F9F9;
+    padding: 50px;
+    border-radius: 10px;
+    gap: 20px;
+    width: 90%;
+}
+
+.phone .config .prompt .bla p {
+    text-align: center;
+}
+
+.phone .config .prompt .actions {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    justify-content: center;
+}
+
+.phone .config .prompt .actions button {
+    border: none;
+    width: 45%;
+    padding: 10px 15px;
+    border-radius: 5px;
+    background-color: #00000098;
+    color: #FFF;
+    transition: 0.3s;
+}
+
+.phone .config .prompt .actions button:hover {
+    cursor: pointer;
+    background-color: #00000031;
+}
+
+.phone .config .content .header {
+    margin-top: 50px;
+    /* background-color: red; */
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    padding: 5px;
+}
+
+.phone .config .content .header span {
+    text-align: center;
+    font-size: 22px;
+    margin: 10px 0;
+}
+
+.phone .config .content .option {
+    display: flex;
+    align-items: center;
+    transition: 0.3s;
+    width: 100%;
+    padding: 3px;
+    gap: 5px;
+    font-size: 17px;
+}
+
+.phone .config .content .option img {
+    margin-left: 20px;
+    width: 40px;
+    height: auto;
+}
+
+.phone .config .content .option:hover {
+    background-color: #b3afaf83;
+    cursor: pointer;
+}
+
+.phone .config .content-save {
+    width: 100%;
+    height: 100%;
+}
+
+.phone .config .save-container {
+    background-color: rgba(128, 128, 128, 0.224);
+    width: 80%;
+    height: 488px;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
+    padding: 10px;
+    margin: 0 auto;
+    border-radius: 10px;
+    gap: 8px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.phone .config .save-container::-webkit-scrollbar {
+    display: none;
+}
+
+.phone .config .save-container .no-saves {
+    text-align: center;
+    padding: 5px;
+    margin: 0;
+}
+
+.phone .config .save-container input {
+    width: 136.57px;
+    padding: 5px;
+    margin: 0;
+    font-size: 16px;
+    border: none;
+    background-color: #00000021;
+    outline: none;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.phone .config .save-container input::selection {
+    background-color: rgba(104, 76, 76, 0.567);
+}
+
+.phone .config .save-container .save {
+    display: flex;
+    flex-flow: row nowrap;
+    gap: 10px;
+    padding: 8px;
+    background-color: #ffffffea;
+    border-radius: 5px;
+    cursor: default;
+    transition: 0.5s;
+}
+
+.phone .config .save-container .highlight {
+    background-color: rgba(128, 128, 128, 0.556);
+}
+
+.phone .config .save-container .save .save-load-btn {
+    background-color: rgba(12, 12, 242, 0.8);
+    color: #FFF;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.phone .config .save-container .save .save-load-btn:hover {
+    background-color: rgba(12, 12, 242, 0.539);
+}
+
+.phone .config .save-container .save .save-name-span {
+    padding: 6px;
+    cursor: pointer;
+    width: 136.57px;
+    text-align: center;
+    overflow: hidden;
+    height: 30px;
+    white-space: nowrap;
+    position: relative;
+}
+
+.phone .config .save-container .save .save-name-span::before {
+    content: attr(data-text);
+    position: absolute;
+    animation: marquee 8s linear infinite;
+    overflow: hidden;
+}
+
+@keyframes marquee {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+.phone .config .save-container .save .save-delete-btn {
+    background-color: red;
+    color: #FFF;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.phone .config .save-container .save .save-delete-btn:hover {
+    background-color: rgba(255, 0, 0, 0.477);
+}
+
+.phone .config .content-save .importexport {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 10px;
+}
+
+.phone .config .content-save .importexport span {
+    padding: 10px;
+    background-color: rgba(90, 88, 95, 0.913);
+    border-radius: 10px;
+    color: #FFF;
+    cursor: pointer;
+    transition: 0.3s;
+    width: 35%;
+    text-align: center;
+}
+
+.phone .config .content-save .importexport span:hover {
+    background-color: rgba(90, 88, 95, 0.695);
+}
+
+.phone .config .new-save-slot {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 10px;
+}
+
+.phone .config .new-save-slot {
+    display: flex;
+    justify-content: center;
+}
+
+.phone .config .new-save-slot span {
+    padding: 15px;
+    background-color: #27a768;
+    border-radius: 10px;
+    color: #FFF;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.phone .config .new-save-slot span:hover {
+    background-color: #27a767a9;
+}
+
+
+@media (max-width: 1560px) {
+    .phone {
+        width: 410px;
+    }
+
+    .phone .config .save-container {
+        height: 340px;
+        width: 85%;
+    }
+
+    .whats .chat {
+        height: 87.5%;
+    }
+
+    .whats .chat .messages {
+        height: 92.2%;
+    }
+
+    .chat .decorative-options-bottom {
+        bottom: 6.5%;
+    }
+
+    .modal {
+        border-radius: 45px;
+        left: 19px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .phone {
+        width: 410px;
+    }
+
+    .modal {
+        border-radius: 47px;
+    }
+
+    .whats .chat {
+        height: 86.5%;
+    }
+
+    .whats .nav {
+        height: 7.5%;
+    }
+
+    .chat .decorative-options-bottom {
+        bottom: 6.5%;
+    }
+
+    .phone .insta .content {
+        height: 94%;
+    }
+
+    .phone .config .save-container {
+        height: 384px;
+    }
+}
+
+@media (max-width: 430px) {
+    .phone {
+        justify-content: center;
+        width: 100vw;
+    }
+
+    /* .phone .event .ebtn {
+        width: 50%;
+    } */
+
+    .phone .config .save-container .save {
+        width: 95%;
+    }
+
+    .phone .config .save-container .save input {
+        width: 116.312px;
+    }
+
+    .whats .chat .messages {
+        height: 93%;
+    }
+}
+
+@media (max-width: 410px) {
+    .phone {
+        justify-content: center;
+        /* width: 440px; */
+    }
+
+    /* .phone .event .content {
+        width: 95%;
+    } */
+}
+
+@media (max-width: 390px) {
+    .phone {
+        justify-content: center;
+        /* width: 400px; */
+    }
+
+    .phone .config .save-container .save {
+        width: 98%;
+    }
+}
+
+@media (max-width: 380px) {
+    .whats .chat .messages {
+        height: 91%;
+    }
+}
+
+@media (max-width: 360px) {
+    .whats .chat .messages {
+        height: 92%;
+    }
+}
+
+@media (max-width: 360px) {
+    .phone {
+        justify-content: center;
+        /* width: 390px; */
+    }
+
+    .phone .config .save-container {
+        height: 338px;
+    }
+
+    .phone .event .content .edial .perfil-edial {
+        width: 40px;
+        height: 40px;
+    }
+}

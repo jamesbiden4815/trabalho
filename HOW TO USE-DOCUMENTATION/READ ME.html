@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhoneSim Documentation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 170px;
+      background-color: #f4f4f4;
+      padding: 20px;
+      position: fixed;
+      height: 100%;
+      overflow: auto;
+      box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 10px;
+      margin-bottom: 5px;
+      color: #333;
+      text-decoration: none;
+    }
+
+    .sidebar a:hover {
+      background-color: #ddd;
+    }
+
+    /* Content */
+    .content {
+      margin-left: 220px;
+      padding: 20px;
+      max-width: 800px;
+    }
+
+    h2 {
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 5px;
+    }
+
+    /* Code block style */
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      overflow-x: auto;
+    }
+
+    code {
+      font-family: "Courier New", Courier, monospace;
+      color: #c7254e;
+      background-color: #f9f2f4;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    /* Anchor */
+    a[name] {
+      display: block;
+      padding-top: 60px;
+      margin-top: -60px;
+    }
+
+    /* Image styling */
+    .doc-image {
+      max-width: 100%;
+      height: auto;
+      margin: 20px 0;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .image-caption {
+      font-style: italic;
+      text-align: center;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="sidebar">
+    <h3>Topics</h3>
+    <a href="#intro">Introduction</a>
+    <a href="#starting">Getting started</a>
+    <a href="#multimedia">Multimedia</a>
+    <a href="#characters">Characters</a>
+    <a href="#chat">Chat</a>
+    <a href="#mentions">Mentions</a>
+    <a href="#posts">Posts</a>
+    <a href="#dialogues">Dialogues</a>
+    <a href="#call-events">Call Events</a>
+    <a href="#paths&choices">Paths and Choices</a>
+    <a href="#variables&validations">Variables and Validations</a>
+    <a href="#others">Other commands</a>
+    <a href="#launching">Launching the Game</a>
+  </div>
+
+  <div class="content">
+    <h1>PhoneSim Documentation</h1>
+
+    <a name="intro"></a>
+    <h2>Introduction</h2>
+    <p>PhoneSim is a custom engine designed for creating visual novel games that simulate phone interactions. This
+      documentation covers the basic setup and usage of PhoneSim.</p>
+
+    <p>In the initial versions the Text Editor (IDE) is not available but you can already use it and create your games.
+      No
+      worry, it will be available soon, but for now I recommend using Notepad++ or Visual Studios
+      Code,
+      or use your favorite editor like Word or even edit directly in the game files. The choice is yours.
+
+    <p>Keep in mind that this is an initial version of the documentation and will undergo constant changes. If any
+      part is bad or difficult to understand, let me know and I'll improve it.
+
+      <a name="starting"></a>
+    <h2>Getting Started</h2>
+    <p>When you download the engine you should see some files in the folder.
+      It's crucial that you don't change anything that's in system without contacting me or something might not work
+      properly in
+      your game.
+      On the other hand, everything in “Content” can be changed, but always keep the default so that the engine
+      can always find your files.
+    </p>
+    <p>When you open the Content folder you will see the following files:</p>
+    <img src="images/content-folder.png" alt="Arquivos presentes na pasta content" class="doc-image">
+    <p class="image-caption">Figure 1: Files in the content folder.</p>
+
+    <p>The “audios”, “images” and “videos” folders are media folders and this is where you will insert all the media in
+      your game.
+      from your game.</p>
+    <p>These folders cannot be deleted, but you can create subfolders without any problems. For example, photos of
+      can be placed in the “images/chars” folder, just point to the image correctly later in the game.</p>
+
+    <p>The config file is where you can define certain settings for your game and the characters file is where you can
+      insert or edit a character. Ignore these files for now and let's go to story.js</p>
+    <p>When you open this file you will see something similar to this:</p>
+    <img src="images/story.png" alt="Contents of the file story.js" class="doc-image">
+    <p class="image-caption">Figure 2:Contents of the file story.js.</p>
+
+    <p>The process is quite simple. Everything you write here will be converted into playability in your game. To test
+      let's make a few changes?</p>
+    <p>Insert this text into the story.js file, but remember to follow the instructions in the file itself.</p>
+    <pre><code>
+      ## anime
+      Hi, what's up?
+      @ Yes I'm fine
+      Good, what are you doing?
+      @ I'm learning to create games in the PhoneSim engine
+      That's great!
+    </code></pre>
+
+    <p>Basically, we're creating a conversation with an anime character (full name “Anime Girl”). This character has
+      already
+      was created beforehand to make the tutorial easier. Now just save story.js and open the html file or reload
+      the page if it's already open and that's it. You've already created a dialog easily.</p>
+    <p>Of course, this is just the beginning, follow all the steps in this guide and if you need further explanation
+      just
+      me on discord.</p>
+
+    <a name="multimedia"></a>
+    <h2>Multimedia</h2>
+    <p>In the Content folder there are a few folders such as “audios”, “images” and “videos”. These three folders cannot
+      be deleted but you can create new folders within them for
+      better organization.</p>
+    <p>The engine will always look for the media in the corresponding folder. So remember, if the media you want to
+      display on the
+      screen is an image, it must be in the images folder. The same goes for other types of media.</p>
+    <p>Remember to point the path correctly. example: test.jpg - This image is directly inside the
+      folder. folderTest/test.jpg - In this example the image is inside images/folderTest/test.jpg.</p>
+
+    <a name="characters"></a>
+    <h2>Characters</h2>
+    <p>In the content folder we have the <code>characters.js</code> file where you can insert, remove or edit a
+      character. When you
+      open the file you will see some instructions and a repetition of the following template:</p>
+    <img src="images/chars.png" alt="Template for creating a character" class="doc-image">
+    <p class="image-caption">Figure 3:Template for creating a character.</p>
+    <p>To insert a new character, simply copy and paste this templet and change it according to your preferences, but
+      remember to follow the instructions in the file.</p>
+
+    <a name="chat"></a>
+    <h2>Chat</h2>
+    <p>The chat application is very simple to use. But first you need to indicate the engine you want to create a
+      chat and also point to the character. To do this is very simple and we've already done it in the
+      Getting
+      Started block. To make it easier, I'll use the same example.</p>
+    <pre><code>
+      ## anime
+      Hi, what's up?
+      @ Yes I'm fine
+      Good, what are you doing?
+      @ I'm learning to create games in the PhoneSim engine
+      That's great!
+    </code></pre>
+
+    <p>By using “## anime” (with two “#”) I'm telling the engine that I want to simulate a chat with the character
+      anime (full name Anime Girl)
+      After that, you just have to type in the commands below:</p>
+
+    <h4>Simple text messages:</h4>
+    <pre><code>
+      @ text - Message from the MC
+      text - Message
+    </code></pre>
+
+    <h4>Multimedia messages:</h4>
+    <pre><code>
+      !image src text - Message with Image [text is optional]
+      !video src text - Message with Video [text is optional]
+      @image src text - MC Message with Image [text is optional]
+      @video src text - MC Message with Video [text is optional
+    </code></pre>
+    <p>Note: The media must be in their respective folders. Read <a href=#multimedia>multimedia</a> to find out more.
+    </p>
+
+    <h4>Message groups</h4>
+    <p>Unlike a normal chat, in a group entity we have to indicate who is talking, for example:</p>
+    <pre><code>
+      &Marcus Text
+      or
+      &marcus Text
+    </code></pre>
+
+    <p>In the example above we have two examples. One with an uppercase letter and the other with a lowercase letter.
+      Let's
+      explanation.</p>
+    <p><strong>Capital letter</strong> When using the first capital letter, the engine will use the name you mentioned,
+      in this example
+      Marcus will be shown as the person who sent the message.
+      This example is good when you want to send a message in a group with a character that doesn't exist in
+      <code>characters.js</code>.
+    </p>
+    <p><strong>Lowercase</strong> In this case the character must exist in <code>characters.js</code>, the engine will
+      validate this character and
+      display the name the player has chosen for it. This example is good for messaging important or
+      characters in a group or story.</p>
+
+    <a name="mentions"></a>
+    <h2>Mentions</h2>
+    <p>Mentions can be used for a character or a character's relationship. See below.</p>
+    <pre><code>
+      @charKey - Mentions a character
+      @relKey - Mentions a relation of a character
+  
+      Examples:
+      @anime - Will mention anime and the name of the character that the creator and/or player has chosen will be displayed. In this case, Anime Girl will be displayed
+      @bro - Mentions the relationship, in this case for Anime Girl. The relationship that the Creator/player has chosen for this character will be displayed on the screen.
+   </code></pre>
+
+    <a name="posts"></a>
+    <h2>Posts</h2>
+    To make a post we use the command:
+    <code>!post</code> followed by some information. See below:
+    <pre><code>
+    !post src charKey **rection** 'person' "comment for person 1"
+    exemplo:
+    !post post.jpg anime **What a beautiful photo** 'person 1' "What a nice photo" 'person 2' "@anime You look beautiful" '@mc' "That's my little sister"
+   </code></pre>
+
+    <p>To create a new post, I recommend copying and pasting the example above and changing it as necessary.</p>
+    <p>In <code>src</code> we must enter the path of the image that will be used in the post</p>
+    <p>In <code>charKey</code> we must inform which character is going to make the post</p>
+    <p>In <code>**Reaction**</code> this field will contain the MC's reaction to liking the photo in this post.
+      this field can be left empty:<code>****</code>
+    </p>
+    <p>Then you can use a sequence of single quotation marks ('') and double quotation marks (“”) for people and
+      people's comments
+      in the
+      post as in the example above.</p>
+    <p>In the person field (single quotation mark '') and in the comment fields (double quotation mark “”) you can
+      mention any
+      character that exists in
+      <code>characters.js</code> as shown in the example
+    </p>
+
+    <a name="dialogues"></a>
+    <h2>Dialogues</h2>
+    <p>Dialogues are texts that represent the speech and thoughts of the MC or any other character in the story.
+      functionality is quite simple, everyone will start with an asterisk “*” for speech or two asterisks “**” for
+      thoughts. See below</p>
+    <pre><code>
+      *Hey, what's up* -> This is a speech by mc
+      **I'm the MC and I'm thinking** -> MC's thought
+      
+      *anime-Hey, how are you?* -> You direct the speech to another character by informing them at the beginning
+      **anime-Thought of the anime character** -> Same goes for thoughts
+      
+      *sys-System message* -> Using “sys” at the beginning of a speech or thought will be considered a system message.
+    </code></pre>
+
+    <a name="call-events"></a>
+    <h2>Call Events</h2>
+    <p>These events are phone calls that the MC can make to any other character. To trigger this
+      event is similar to the way we start a chat, but we just use a “#”. See the example below:</p>
+    <pre><code>
+      # anime
+      !answer
+      *anime-Hello??*
+      *Hey @anime, just wanted to say hi*
+      *anime-All right, bye bye*
+      *Bye*
+      !endCall
+    </code></pre>
+
+    <p>In the example above, we triggered a call event for the anime character.</p>
+    <p>The <code>!answer</code> command is optional and will tell you whether or not the character (in this case anime)
+      will answer the call.</p>
+    <p>Unlike chat where we use messages, on the phone every conversation must be in the form of a dialog</p>
+    <p>The command <code>!endCall</code> is also optional and should only be used if the <code>!answer</code> command is
+      used. It is used to hang up the call if it has been answered.
+    </p>
+
+    <a name="paths&choices"></a>
+    <h2>Paths and Choices</h2>
+    <p>Let's look at an example of paths and choices and then a brief explanation</p>
+    <pre><code>
+      ## anime
+      And then, do you want to go to the movies or to the restaurant?
+      !choice 'Go to the cinema' "cinemaPath" 'Go to the restaurant' "restaurantPath"
+
+      ### cinemaPath
+      @ Let's go to the movies today, we'll leave the restaurant for another day
+      All right then
+      !jump continuation
+
+      ### restaurantPath
+      @ We're going to the restaurant today, we'll leave the movie for another day
+      All right then
+      !jump continuation
+
+      ### continuation
+      @ When I'll pick you up at your house
+      It could be 7 o'clock
+      @ All right, see you then
+    </code></pre>
+
+    <p>In the example above we have 3 paths that are created with three hashtags (###): cinemaPath, restaurantPath and
+      continuation these paths are triggered with the command <code>!choice</code></p>
+    <p><code>!choice</code> receives a pattern of single quotation marks ('') which is the text that will be shown in
+      the game to the
+      player and
+      double quotation marks (“”) which is the internal field where the name of the path is given</p>
+    <p><code>!choice</code> can have as many choices as you want to insert, as long as you follow the pattern of single
+      and double
+      asaps</p>
+    <p><code>!jump</code> triggers a path determined by the creator. In this case, the two <code>!jump</code> lead to a
+      “continuation” in which
+      it will
+      continue with the story</p>
+
+    <a name="variables&validations"></a>
+    <h2>Variables and Validations</h2>
+    <p>Variables and validations are advanced tools that will require a little more practice and knowledge. They
+      are used to store information and validations can be made based on these variables. Take the following example
+      below:</p>
+
+    <pre><code>
+      ## anime
+      And then, do you want to go to the movies or to the restaurant?
+      !choice 'Go to the cinema' "cinemaPath" 'Go to the restaurant' "restaurantPath"
+
+      ### cinemaPath
+      !var choseCinema = true
+      @ Let's go to the cinema today, we'll leave the restaurant for another day
+      All right then
+      !jump continuation
+
+      ### restaurantPath
+      !var choseRestaurant = true
+      @ We're going to the restaurant today, we'll leave the movies for another day
+      All right then
+      !jump continuation
+
+      ### continuation
+      @ When I'll pick you up at your house
+      It could be 7 o'clock
+      @ All right, see you then
+      *sys-Some time later...*
+      !if (choseCinema) afterCinema
+      !if (choseRestaurant) afterRestaurant
+
+      ### afterCinema
+      @ That movie was fantastic
+      I thought so too, I'm already looking forward to the sequel lol
+
+      ### afterRestaurant
+      @ What delicious food, the best restaurant in town
+      I agree with you, just thinking about it makes me hungry again
+      </code></pre>
+
+    <p>In the example above, we used variables and validations to determine which path the player will see according to
+      his
+      choices.</p>
+    <p><code>!var</code> creates a new variable or changes it if it already exists</p>
+    <p><code>!if</code> validates the value of a previously created variable. The variable must exist to be validated.
+    </p>
+
+    <a name="others"></a>
+    <h2>Other Commands</h2>
+    <p><strong>toggleChar</strong></p>
+    <pre><code>
+      !toggleChar -> Adding and removing characters from chat
+      example:
+      !toggleChar anime dev
+    </code></pre>
+    <p><code>!toggleChar</code> can be used for several characters at the same time as long as they are separated with a
+      space as in the
+      example above</p>
+    <p>Using this command will invert the character's available value. Basically removing and/or inserting them into the
+      game.</p>
+
+    <p><strong>!perfil</strong></p>
+
+    <pre><code>
+      !perfil src -> Change profile picture on the current chat character.
+      example:
+      !perfil anime.jpg
+    </code></pre>
+    <p>It should be used in chat. This command changes the profile picture of the current character, both in chat and on
+      instagram</p>
+
+    <p><strong>!next</strong></p>
+
+    <pre><code>
+      !next
+    </code></pre>
+    <p><code>!next</code> determines that the current period (morning, afternoon or evening) has ended and to continue
+      the story the
+      character
+      will have to move forward in time by clicking on the clock on the game's start screen</p>
+
+    <p><strong>!audio</strong></p>
+
+    <pre><code>
+      !audio src
+    </code></pre>
+    <p>Plays background audio. Repeatable. Useful for adding immersion to events or calls.</p>
+
+    <a name="launching"></a>
+    <h2>Launching the Game</h2>
+    <p>After creating your game you may want to release it for other people to play. To do this, follow the steps
+      below</p>
+    <p><strong>Change creator settings</strong> - In content/config.js change devMode to false. This way the
+      options are disabled for those who are going to play.</p>
+    <p><strong>Set game name</strong> - In the same file change "name" to the "game name" (inside the double quotes)</p>
+    <p><strong>Rename the HTML file</strong> - In the root of the project there is a file called
+      <code>PhoneSim.html</code> rename this file with
+      the name of the your game like <code>mygame.html</code>
+    </p>
+    <p>Now all you have to do is compress your game and upload it to the desired location/website</p>
+    <p><strong>You don't have to, but I'd be very happy if you'd credit the engine. A simple mention of PhoneSim is more than
+      enough. Thanks 😉.</strong></p>
+  </div>
+
+</body>
+
+</html>
