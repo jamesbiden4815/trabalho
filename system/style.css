@@ -1444,7 +1444,7 @@ body {
     }
 
     .whats .chat {
-        height: 86.5%;
+        height: 75%;
     }
 
     .whats .nav {
@@ -1452,7 +1452,8 @@ body {
     }
 
     .chat .decorative-options-bottom {
-        bottom: 6.5%;
+        /* bottom: 6.5%; */
+        bottom: 16%; 
     }
 
     .phone .insta .content {
