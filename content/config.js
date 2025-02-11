@@ -1,4 +1,4 @@
 const gameConfig = {
     name: "PhoneSim",
-    devMode: true,
+    devMode: false,
 }
