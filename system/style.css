@@ -75,7 +75,7 @@ body {
     position: absolute;
     top: 0%;
     width: 96%;
-    height: 100%;
+    height: 92%;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -1444,7 +1444,7 @@ body {
     }
 
     .whats .chat {
-        height: 75%;
+        height: 86.5%;
     }
 
     .whats .nav {
@@ -1452,8 +1452,7 @@ body {
     }
 
     .chat .decorative-options-bottom {
-        /* bottom: 6.5%; */
-        bottom: 16%; 
+        bottom: 6.5%;
     }
 
     .phone .insta .content {
